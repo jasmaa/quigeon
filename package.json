@@ -11,6 +11,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@cloudscape-design/components": "^3.0.225",
+    "@cloudscape-design/global-styles": "^1.0.7",
     "@tauri-apps/api": "^1.2.0",
     "@types/node": "18.15.0",
     "@types/react": "18.0.28",
