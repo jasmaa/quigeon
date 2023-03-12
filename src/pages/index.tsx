@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, Spinner, ColumnLayout } from "@cloudscape-design/components";
+import { Badge, Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, Spinner, ColumnLayout, Flashbar } from "@cloudscape-design/components";
 import { OptionDefinition } from "@cloudscape-design/components/internal/components/option/interfaces";
 import { ResponsePayload } from "@awspostman/interfaces";
 import RequestHeaderEditor, { RequestHeader } from "@awspostman/components/RequestHeaderEditor";
 import hljs from "highlight.js";
 import * as beautify from "js-beautify";
+
+let pendingRequestId: string | null = null;
 
 enum PayloadType {
   JSON,
@@ -39,8 +41,9 @@ export default function Home() {
       editable: false,
     },
   ]);
-  const [response, setResponse] = useState<ResponsePayload>();
   const [isSendingRequest, setIsSendingRequest] = useState(false);
+  const [response, setResponse] = useState<ResponsePayload>();
+  const [responseErrorText, setResponseErrorText] = useState("");
 
   useEffect(() => {
     hljs.highlightAll();
@@ -80,32 +83,61 @@ export default function Home() {
     }
   }
 
+  const getBadgeColorForStatus = (status: string) => {
+    if (status.startsWith("1")) {
+      return "grey";
+    } else if (status.startsWith("2")) {
+      return "green";
+    } else if (status.startsWith("3")) {
+      return "blue";
+    } else if (status.startsWith("4")) {
+      return "red";
+    } else if (status.startsWith("5")) {
+      return "red";
+    } else {
+      return "grey";
+    }
+  }
+
   return (
     <SpaceBetween size="l" direction="vertical">
       <Container>
         <form onSubmit={(e) => {
           e.preventDefault();
+          const currentRequestId = crypto.randomUUID();
+          pendingRequestId = currentRequestId;
           setIsSendingRequest(true);
           setResponse(undefined);
-          (async () => {
-            try {
-              const res = await invoke('send_request', {
-                method: methodOption.value,
-                url,
-                headers: headers.filter((header) => header.editable),
-                body,
-                accessKey,
-                secretKey,
-                region,
-                service,
-              }) as ResponsePayload;
-              setResponse(res);
-            } catch (err) {
-              console.error(err);
-            } finally {
-              setIsSendingRequest(false);
-            }
-          })();
+          setResponseErrorText("");
+          setTimeout(() => {
+            (async () => {
+              try {
+                const res = await invoke('send_request', {
+                  method: methodOption.value,
+                  url,
+                  headers: headers.filter((header) => header.editable),
+                  body,
+                  accessKey,
+                  secretKey,
+                  region,
+                  service,
+                }) as ResponsePayload;
+                if (pendingRequestId === currentRequestId) {
+                  setResponse(res);
+                }
+              } catch (err) {
+                console.error(err);
+                if (pendingRequestId === currentRequestId) {
+                  setResponseErrorText(err as string);
+                }
+              } finally {
+                if (pendingRequestId === currentRequestId) {
+                  pendingRequestId = null;
+                  setIsSendingRequest(false);
+                }
+              }
+            })();
+          }, 1000);
         }}>
           <Grid gridDefinition={[{ colspan: 2 }, { colspan: 8 }, { colspan: 2 }]}>
             <Select
@@ -130,7 +162,7 @@ export default function Home() {
             <Input value={url} placeholder="URL" onChange={({ detail }) => {
               setUrl(detail.value);
             }} />
-            <Button disabled={isSendingRequest}>Send</Button>
+            <Button loading={isSendingRequest}>Send</Button>
           </Grid>
           <Tabs
             tabs={[
@@ -202,17 +234,48 @@ export default function Home() {
       <Container header={<Header variant="h2">Response</Header>}>
         {
           !isSendingRequest
-            ? response && (
+            ? (
               <>
-                <pre>{response.status}</pre>
-                <pre style={{ whiteSpace: "pre-wrap" }}>
-                  <code className={getHighlightClassName(response.text)}>{
-                    getBeautifiedText(response.text)
-                  }</code>
-                </pre>
+                <Flashbar items={
+                  responseErrorText
+                    ? ([
+                      {
+                        header: "Error sending request",
+                        type: "error",
+                        content: responseErrorText,
+                        id: "error-msg"
+                      }
+                    ])
+                    : []
+                } />
+                {
+                  response && (
+                    <>
+                      <SpaceBetween size="s" direction="horizontal">
+                        <Badge color={getBadgeColorForStatus(response.status)}>Status: {response.status}</Badge>
+                        <Badge color="blue">Time: {response.timeMs}ms</Badge>
+                        <Badge color="blue">Size: {response.sizeBytes}B</Badge>
+                      </SpaceBetween>
+                      <pre style={{ whiteSpace: "pre-wrap" }}>
+                        <code className={getHighlightClassName(response.text)}>{
+                          getBeautifiedText(response.text)
+                        }</code>
+                      </pre>
+                    </>
+                  )
+                }
               </>
             )
-            : <Spinner />
+            : (
+              <SpaceBetween size="m" direction="horizontal">
+                <Spinner />
+                <Button onClick={() => {
+                  pendingRequestId = null;
+                  setIsSendingRequest(false);
+                  setResponseErrorText("Request cancelled");
+                }}>Cancel</Button>
+              </SpaceBetween>
+            )
         }
       </Container>
     </SpaceBetween>

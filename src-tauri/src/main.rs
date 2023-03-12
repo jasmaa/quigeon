@@ -3,7 +3,11 @@
     windows_subsystem = "windows"
 )]
 
-use std::{error::Error, str::FromStr, time::SystemTime};
+use std::{
+    error::Error,
+    str::FromStr,
+    time::{Instant, SystemTime},
+};
 
 use aws_sigv4::http_request::{sign, SignableRequest, SigningParams, SigningSettings};
 use http::{self, HeaderName, HeaderValue};
@@ -17,11 +21,15 @@ struct RequestHeader {
 
 #[derive(serde::Serialize)]
 struct ResponsePayload {
-    text: String,
     status: String,
+    #[serde(rename = "sizeBytes")]
+    size_bytes: usize,
+    #[serde(rename = "timeMs")]
+    time_ms: usize,
+    text: String,
 }
 
-fn send_sigv4(
+async fn send_sigv4(
     method: String,
     url: String,
     headers: Vec<RequestHeader>,
@@ -73,19 +81,27 @@ fn send_sigv4(
         .headers_mut()
         .append("x-amz-content-sha256", HeaderValue::from_str(&hash_str)?);
 
-    let client = reqwest::blocking::Client::new();
-    let req = reqwest::blocking::Request::try_from(request)?;
-    let res = client.execute(req)?;
+    let client = reqwest::Client::new();
+    let req = reqwest::Request::try_from(request)?;
+
+    let start_time = Instant::now();
+    let res = client.execute(req).await?;
+    let end_time = Instant::now();
+
     let status = &res.status().to_string();
-    let text = res.text()?.clone();
+    let time_ms = (end_time - start_time).as_millis() as usize;
+    let text = res.text().await?.clone();
+    let size_bytes = text.as_bytes().len();
     Ok(ResponsePayload {
-        text: text,
         status: status.clone(),
+        time_ms: time_ms,
+        size_bytes: size_bytes,
+        text: text,
     })
 }
 
 #[tauri::command]
-fn send_request(
+async fn send_request(
     method: String,
     url: String,
     headers: Vec<RequestHeader>,
@@ -97,8 +113,10 @@ fn send_request(
 ) -> Result<ResponsePayload, String> {
     match send_sigv4(
         method, url, headers, body, access_key, secret_key, region, service,
-    ) {
-        Ok(text) => Ok(text),
+    )
+    .await
+    {
+        Ok(payload) => Ok(payload),
         Err(err) => Err(err.to_string()),
     }
 }
