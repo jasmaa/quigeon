@@ -7,6 +7,7 @@ import RequestHeaderEditor, { RequestHeader } from "@awspostman/components/Reque
 import hljs from "highlight.js";
 import * as beautify from "js-beautify";
 
+// Request id for matching current request when multiple requests are in flight
 let pendingRequestId: string | null = null;
 
 enum PayloadType {
@@ -104,8 +105,15 @@ export default function Home() {
       <Container>
         <form onSubmit={(e) => {
           e.preventDefault();
+
+          if (isSendingRequest) {
+            return;
+          }
+
+          // Generate a unique id for this request
           const currentRequestId = crypto.randomUUID();
           pendingRequestId = currentRequestId;
+
           setIsSendingRequest(true);
           setResponse(undefined);
           setResponseErrorText("");
@@ -119,9 +127,11 @@ export default function Home() {
                   body,
                   accessKey,
                   secretKey,
+                  sessionToken,
                   region,
                   service,
                 }) as ResponsePayload;
+                // Only update if this request is still the current request
                 if (pendingRequestId === currentRequestId) {
                   setResponse(res);
                 }
@@ -199,7 +209,7 @@ export default function Home() {
                         }} />
                       </FormField>
                       <FormField
-                        label="Session Token">
+                        label="Session Token (optional)">
                         <Input value={sessionToken} placeholder="Session token" onChange={({ detail }) => {
                           setSessionToken(detail.value);
                         }} />

@@ -36,6 +36,7 @@ async fn send_sigv4(
     body: String,
     access_key: String,
     secret_key: String,
+    session_token: String,
     region: String,
     service: String,
 ) -> Result<ResponsePayload, Box<dyn Error>> {
@@ -56,6 +57,7 @@ async fn send_sigv4(
     let signing_params = SigningParams::builder()
         .access_key(access_key.as_str())
         .secret_key(secret_key.as_str())
+        .security_token(session_token.as_str())
         .region(region.as_str())
         .service_name(service.as_str())
         .time(SystemTime::now())
@@ -108,11 +110,12 @@ async fn send_request(
     body: String,
     access_key: String,
     secret_key: String,
+    session_token: String,
     region: String,
     service: String,
 ) -> Result<ResponsePayload, String> {
     match send_sigv4(
-        method, url, headers, body, access_key, secret_key, region, service,
+        method, url, headers, body, access_key, secret_key, session_token, region, service,
     )
     .await
     {
