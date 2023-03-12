@@ -4,6 +4,14 @@ import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Tex
 import { OptionDefinition } from "@cloudscape-design/components/internal/components/option/interfaces";
 import { ResponsePayload } from "@awspostman/interfaces";
 import RequestHeaderEditor, { RequestHeader } from "@awspostman/components/RequestHeaderEditor";
+import hljs from "highlight.js";
+import * as beautify from "js-beautify";
+
+enum PayloadType {
+  JSON,
+  HTML,
+  UNKNOWN,
+}
 
 export default function Home() {
   const [greeting, setGreeting] = useState("");
@@ -41,6 +49,47 @@ export default function Home() {
       setGreeting(text);
     })();
   }, []);
+
+  useEffect(() => {
+    hljs.highlightAll();
+  }, [response]);
+
+  const getResponsePayloadType = () => {
+    if (response) {
+      if (response.text.startsWith("<")) {
+        return PayloadType.HTML;
+      } else if (response.text.startsWith("{")) {
+        return PayloadType.JSON;
+      }
+    }
+    return PayloadType.UNKNOWN;
+  }
+
+  const getHighlightClassName = () => {
+    const payloadType = getResponsePayloadType();
+    switch (payloadType) {
+      case PayloadType.HTML:
+        return "language-html";
+      case PayloadType.JSON:
+        return "language-json";
+      default:
+        return "nohighlight";
+    }
+  }
+
+  const getBeautifiedResponseText = () => {
+    if (response) {
+      const payloadType = getResponsePayloadType();
+      switch (payloadType) {
+        case PayloadType.HTML:
+          return beautify.html_beautify(response.text, {});
+        case PayloadType.JSON:
+          return beautify.js_beautify(response.text, {});
+        default:
+          return response.text;
+      }
+    }
+  }
 
   return (
     <SpaceBetween size="l" direction="vertical">
@@ -165,7 +214,11 @@ export default function Home() {
             ? response && (
               <>
                 <pre>{response.status}</pre>
-                <pre>{response.text}</pre>
+                <pre style={{ whiteSpace: "pre-wrap" }}>
+                  <code className={getHighlightClassName()}>{
+                    getBeautifiedResponseText()
+                  }</code>
+                </pre>
               </>
             )
             : <Spinner />
