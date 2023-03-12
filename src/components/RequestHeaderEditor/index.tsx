@@ -17,7 +17,7 @@ export default function RequestHeaderEditor({
   return (
     <SpaceBetween size="m">
       {headers.map((header, idx) => (
-        <Grid gridDefinition={[{ colspan: 5 }, { colspan: 5 }, { colspan: 2 }]}>
+        <Grid key={idx} gridDefinition={[{ colspan: 5 }, { colspan: 5 }, { colspan: 2 }]}>
           <Input value={header.key} placeholder="Key" disabled={!header.editable} onChange={({ detail }) => {
             const updatedHeaders = [...headers];
             updatedHeaders[idx].key = detail.value;

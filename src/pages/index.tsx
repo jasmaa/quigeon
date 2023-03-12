@@ -117,37 +117,35 @@ export default function Home() {
           setIsSendingRequest(true);
           setResponse(undefined);
           setResponseErrorText("");
-          setTimeout(() => {
-            (async () => {
-              try {
-                const res = await invoke('send_request', {
-                  method: methodOption.value,
-                  url,
-                  headers: headers.filter((header) => header.editable),
-                  body,
-                  accessKey,
-                  secretKey,
-                  sessionToken,
-                  region,
-                  service,
-                }) as ResponsePayload;
-                // Only update if this request is still the current request
-                if (pendingRequestId === currentRequestId) {
-                  setResponse(res);
-                }
-              } catch (err) {
-                console.error(err);
-                if (pendingRequestId === currentRequestId) {
-                  setResponseErrorText(err as string);
-                }
-              } finally {
-                if (pendingRequestId === currentRequestId) {
-                  pendingRequestId = null;
-                  setIsSendingRequest(false);
-                }
+          (async () => {
+            try {
+              const res = await invoke('send_request', {
+                method: methodOption.value,
+                url,
+                headers: headers.filter((header) => header.editable),
+                body,
+                accessKey,
+                secretKey,
+                sessionToken,
+                region,
+                service,
+              }) as ResponsePayload;
+              // Only update if this request is still the current request
+              if (pendingRequestId === currentRequestId) {
+                setResponse(res);
               }
-            })();
-          }, 1000);
+            } catch (err) {
+              console.error(err);
+              if (pendingRequestId === currentRequestId) {
+                setResponseErrorText(err as string);
+              }
+            } finally {
+              if (pendingRequestId === currentRequestId) {
+                pendingRequestId = null;
+                setIsSendingRequest(false);
+              }
+            }
+          })();
         }}>
           <Grid gridDefinition={[{ colspan: 2 }, { colspan: 8 }, { colspan: 2 }]}>
             <Select
