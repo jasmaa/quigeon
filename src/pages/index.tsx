@@ -46,19 +46,18 @@ export default function Home() {
     hljs.highlightAll();
   }, [response]);
 
-  const getResponsePayloadType = () => {
-    if (response) {
-      if (response.text.startsWith("<")) {
-        return PayloadType.HTML;
-      } else if (response.text.startsWith("{")) {
-        return PayloadType.JSON;
-      }
+  const getPayloadType = (text: string) => {
+    if (text.startsWith("<")) {
+      return PayloadType.HTML;
+    } else if (text.startsWith("{")) {
+      return PayloadType.JSON;
+    } else {
+      return PayloadType.UNKNOWN;
     }
-    return PayloadType.UNKNOWN;
   }
 
-  const getHighlightClassName = () => {
-    const payloadType = getResponsePayloadType();
+  const getHighlightClassName = (text: string) => {
+    const payloadType = getPayloadType(text);
     switch (payloadType) {
       case PayloadType.HTML:
         return "language-html";
@@ -69,17 +68,15 @@ export default function Home() {
     }
   }
 
-  const getBeautifiedResponseText = () => {
-    if (response) {
-      const payloadType = getResponsePayloadType();
-      switch (payloadType) {
-        case PayloadType.HTML:
-          return beautify.html_beautify(response.text, {});
-        case PayloadType.JSON:
-          return beautify.js_beautify(response.text, {});
-        default:
-          return response.text;
-      }
+  const getBeautifiedText = (text: string) => {
+    const payloadType = getPayloadType(text);
+    switch (payloadType) {
+      case PayloadType.HTML:
+        return beautify.html_beautify(text, {});
+      case PayloadType.JSON:
+        return beautify.js_beautify(text, {});
+      default:
+        return text;
     }
   }
 
@@ -89,12 +86,14 @@ export default function Home() {
         <form onSubmit={(e) => {
           e.preventDefault();
           setIsSendingRequest(true);
+          setResponse(undefined);
           (async () => {
             try {
               const res = await invoke('send_request', {
                 method: methodOption.value,
                 url,
                 headers: headers.filter((header) => header.editable),
+                body,
                 accessKey,
                 secretKey,
                 region,
@@ -207,8 +206,8 @@ export default function Home() {
               <>
                 <pre>{response.status}</pre>
                 <pre style={{ whiteSpace: "pre-wrap" }}>
-                  <code className={getHighlightClassName()}>{
-                    getBeautifiedResponseText()
+                  <code className={getHighlightClassName(response.text)}>{
+                    getBeautifiedText(response.text)
                   }</code>
                 </pre>
               </>

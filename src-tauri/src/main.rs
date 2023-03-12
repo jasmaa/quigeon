@@ -25,6 +25,7 @@ fn send_sigv4(
     method: String,
     url: String,
     headers: Vec<RequestHeader>,
+    body: String,
     access_key: String,
     secret_key: String,
     region: String,
@@ -33,7 +34,14 @@ fn send_sigv4(
     let mut request = http::Request::builder()
         .method(method.as_str())
         .uri(url)
-        .body("")?;
+        .body(body)?;
+
+    // Add user-specified headers
+    for header in headers.clone() {
+        let k = HeaderName::from_str(&header.key)?;
+        let v = HeaderValue::from_str(header.value.as_str())?;
+        request.headers_mut().append(k, v);
+    }
 
     // Attach sigv4 signature headers
     let signing_settings = SigningSettings::default();
@@ -65,13 +73,6 @@ fn send_sigv4(
         .headers_mut()
         .append("x-amz-content-sha256", HeaderValue::from_str(&hash_str)?);
 
-    // Add user-specified headers
-    for header in headers.clone() {
-        let k = HeaderName::from_str(&header.key)?;
-        let v = HeaderValue::from_str(header.value.as_str())?;
-        request.headers_mut().append(k, v);
-    }
-
     let client = reqwest::blocking::Client::new();
     let req = reqwest::blocking::Request::try_from(request)?;
     let res = client.execute(req)?;
@@ -88,13 +89,14 @@ fn send_request(
     method: String,
     url: String,
     headers: Vec<RequestHeader>,
+    body: String,
     access_key: String,
     secret_key: String,
     region: String,
     service: String,
 ) -> Result<ResponsePayload, String> {
     match send_sigv4(
-        method, url, headers, access_key, secret_key, region, service,
+        method, url, headers, body, access_key, secret_key, region, service,
     ) {
         Ok(text) => Ok(text),
         Err(err) => Err(err.to_string()),
