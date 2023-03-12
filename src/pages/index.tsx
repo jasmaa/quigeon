@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri"
+import { invoke } from "@tauri-apps/api/tauri";
 import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, Spinner, ColumnLayout } from "@cloudscape-design/components";
 import { OptionDefinition } from "@cloudscape-design/components/internal/components/option/interfaces";
 import { ResponsePayload } from "@awspostman/interfaces";
+import RequestHeaderEditor, { RequestHeader } from "@awspostman/components/RequestHeaderEditor";
 
 export default function Home() {
   const [greeting, setGreeting] = useState("");
@@ -14,6 +15,23 @@ export default function Home() {
   const [methodOption, setMethodOption] = useState<OptionDefinition>({ label: "GET", value: "GET" });
   const [url, setUrl] = useState<string>("");
   const [body, setBody] = useState<string>("");
+  const [headers, setHeaders] = useState<RequestHeader[]>([
+    {
+      key: "Authorization",
+      value: "<calculated value>",
+      editable: false,
+    },
+    {
+      key: "x-amz-date",
+      value: "<calculated value>",
+      editable: false,
+    },
+    {
+      key: "x-amz-content-sha256",
+      value: "<calculated value>",
+      editable: false,
+    },
+  ]);
   const [response, setResponse] = useState<ResponsePayload>();
   const [isSendingRequest, setIsSendingRequest] = useState(false);
 
@@ -35,6 +53,7 @@ export default function Home() {
               const res = await invoke('send_request', {
                 method: methodOption.value,
                 url,
+                headers: headers.filter((header) => header.editable),
                 accessKey,
                 secretKey,
                 region,
@@ -121,7 +140,7 @@ export default function Home() {
                 label: "Headers",
                 id: "headers",
                 content: (
-                  null
+                  <RequestHeaderEditor headers={headers} onChange={(updatedHeaders) => { setHeaders(updatedHeaders) }} />
                 )
               },
               {
