@@ -21,12 +21,6 @@ struct ResponsePayload {
     status: String,
 }
 
-// dummy greet command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}!", name)
-}
-
 fn send_sigv4(
     method: String,
     url: String,
@@ -109,7 +103,7 @@ fn send_request(
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, send_request])
+        .invoke_handler(tauri::generate_handler![send_request])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

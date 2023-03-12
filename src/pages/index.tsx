@@ -14,7 +14,6 @@ enum PayloadType {
 }
 
 export default function Home() {
-  const [greeting, setGreeting] = useState("");
   const [accessKey, setAccessKey] = useState<string>("");
   const [secretKey, setSecretKey] = useState<string>("");
   const [region, setRegion] = useState<string>("");
@@ -42,13 +41,6 @@ export default function Home() {
   ]);
   const [response, setResponse] = useState<ResponsePayload>();
   const [isSendingRequest, setIsSendingRequest] = useState(false);
-
-  useEffect(() => {
-    void (async () => {
-      const text = await invoke('greet', { name: 'World' }) as string;
-      setGreeting(text);
-    })();
-  }, []);
 
   useEffect(() => {
     hljs.highlightAll();
