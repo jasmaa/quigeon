@@ -35,6 +35,10 @@ export default function Home() {
               const res = await invoke('send_request', {
                 method: methodOption.value,
                 url,
+                accessKey,
+                secretKey,
+                region,
+                service,
               }) as ResponsePayload;
               setResponse(res);
             } catch (err) {
@@ -112,6 +116,13 @@ export default function Home() {
                     </SpaceBetween>
                   </ColumnLayout>
                 ),
+              },
+              {
+                label: "Headers",
+                id: "headers",
+                content: (
+                  null
+                )
               },
               {
                 label: "Body",
