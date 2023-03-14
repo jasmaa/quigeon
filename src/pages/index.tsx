@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import { listen } from '@tauri-apps/api/event';
+import { open, save } from '@tauri-apps/api/dialog';
 import { Badge, Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, Spinner, ColumnLayout, Flashbar } from "@cloudscape-design/components";
 import { OptionDefinition } from "@cloudscape-design/components/internal/components/option/interfaces";
 import { ResponsePayload } from "@awspostman/interfaces";
 import RequestHeaderEditor, { RequestHeader } from "@awspostman/components/RequestHeaderEditor";
 import hljs from "highlight.js";
 import * as beautify from "js-beautify";
+import { CollectionContent, RequestContent, contentCache } from "@awspostman/file";
 
 // Request id for matching current request when multiple requests are in flight
 let pendingRequestId: string | null = null;
@@ -47,8 +50,147 @@ export default function Home() {
   const [responseErrorText, setResponseErrorText] = useState("");
 
   useEffect(() => {
+    const unlistenNew = listen("new", async (event) => {
+      reset();
+      contentCache.setCollection(null);
+      contentCache.setFilePath(null);
+    });
+
+    const unlistenLoad = listen("open", async (event) => {
+      const selected = await open({
+        filters: [{
+          name: 'JSON',
+          extensions: ['json']
+        }]
+      });
+      if (selected) {
+        const blob: string = await invoke("open_file_cmd", {
+          filePath: selected,
+        });
+        const collection = JSON.parse(blob);
+        if (collection) {
+          const request = collection.requests[0];
+          setAccessKey(request.accessKey);
+          setSecretKey(request.secretKey);
+          setSessionToken(request.sessionToken);
+          setRegion(request.region);
+          setService(request.service);
+          setMethodOption(request.methodOption);
+          setUrl(request.url);
+          setBody(request.body);
+          setHeaders(request.headers);
+
+          contentCache.setCollection(collection);
+          contentCache.setFilePath(selected as string);
+        }
+      }
+    });
+
+    const unlistenSave = listen("save", async (event) => {
+      const collection = contentCache.getCollection();
+      let filePath = contentCache.getFilePath();
+      if (!filePath) {
+        filePath = await save({
+          filters: [{
+            name: 'JSON',
+            extensions: ['json']
+          }]
+        });
+      }
+      if (collection && filePath) {
+        await invoke("save_file_cmd", {
+          filePath,
+          blob: JSON.stringify(collection),
+        });
+        contentCache.setFilePath(filePath);
+      }
+    });
+
+    const unlistenSaveAs = listen("save-as", async (event) => {
+      const selected = await save({
+        filters: [{
+          name: 'JSON',
+          extensions: ['json']
+        }]
+      });
+      const collection = contentCache.getCollection();
+      if (collection) {
+        await invoke("save_file_cmd", {
+          filePath: selected,
+          blob: JSON.stringify(collection),
+        });
+      }
+    });
+
+    return () => {
+      unlistenNew.then((f) => f());
+      unlistenLoad.then((f) => f());
+      unlistenSave.then((f) => f());
+      unlistenSaveAs.then((f) => f());
+    }
+  }, []);
+
+  useEffect(() => {
+    // Sync collection on state change. State cannot be directly used in Tauri event listener
+    // since state is not reflecting updates in listen.
+    const request: RequestContent = {
+      accessKey,
+      secretKey,
+      sessionToken,
+      region,
+      service,
+      methodOption,
+      url,
+      body,
+      headers,
+    };
+    const collection = {
+      requests: [request]
+    };
+    contentCache.setCollection(collection);
+  }, [
+    accessKey,
+    secretKey,
+    sessionToken,
+    region,
+    service,
+    methodOption,
+    url,
+    body,
+    headers,
+  ]);
+
+  useEffect(() => {
     hljs.highlightAll();
   }, [response]);
+
+  const reset = () => {
+    setAccessKey("");
+    setSecretKey("");
+    setSessionToken("");
+    setRegion("");
+    setService("");
+    setMethodOption({ label: "GET", value: "GET" });
+    setUrl("");
+    setBody("");
+    setHeaders([
+      {
+        key: "Authorization",
+        value: "<calculated value>",
+        editable: false,
+      },
+      {
+        key: "x-amz-date",
+        value: "<calculated value>",
+        editable: false,
+      },
+      {
+        key: "x-amz-content-sha256",
+        value: "<calculated value>",
+        editable: false,
+      },
+    ]);
+  }
 
   const getPayloadType = (text: string) => {
     if (text.startsWith("<")) {
@@ -119,7 +261,7 @@ export default function Home() {
           setResponseErrorText("");
           (async () => {
             try {
-              const res = await invoke('send_request', {
+              const res = await invoke('send_sigv4_cmd', {
                 method: methodOption.value,
                 url,
                 headers: headers.filter((header) => header.editable),

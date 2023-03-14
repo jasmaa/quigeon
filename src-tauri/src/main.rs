@@ -5,6 +5,8 @@
 
 use std::{
     error::Error,
+    fs::File,
+    io::{Read, Write},
     str::FromStr,
     time::{Instant, SystemTime},
 };
@@ -12,6 +14,7 @@ use std::{
 use aws_sigv4::http_request::{sign, SignableRequest, SigningParams, SigningSettings};
 use http::{self, HeaderName, HeaderValue};
 use sha2::{Digest, Sha256};
+use tauri::{CustomMenuItem, Menu, Submenu};
 
 #[derive(serde::Deserialize, Clone)]
 struct RequestHeader {
@@ -103,7 +106,7 @@ async fn send_sigv4(
 }
 
 #[tauri::command]
-async fn send_request(
+async fn send_sigv4_cmd(
     method: String,
     url: String,
     headers: Vec<RequestHeader>,
@@ -115,18 +118,89 @@ async fn send_request(
     service: String,
 ) -> Result<ResponsePayload, String> {
     match send_sigv4(
-        method, url, headers, body, access_key, secret_key, session_token, region, service,
+        method,
+        url,
+        headers,
+        body,
+        access_key,
+        secret_key,
+        session_token,
+        region,
+        service,
     )
     .await
     {
-        Ok(payload) => Ok(payload),
+        Ok(res) => Ok(res),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+fn open_file(file_path: String) -> Result<String, Box<dyn Error>> {
+    let mut file = File::open(file_path)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    Ok(contents)
+}
+
+#[tauri::command]
+fn open_file_cmd(file_path: String) -> Result<String, String> {
+    match open_file(file_path) {
+        Ok(res) => Ok(res),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+fn save_file(file_path: String, blob: String) -> Result<(), Box<dyn Error>> {
+    let mut file = File::create(file_path)?;
+    file.write_all(blob.as_bytes())?;
+    Ok(())
+}
+
+#[tauri::command]
+fn save_file_cmd(file_path: String, blob: String) -> Result<(), String> {
+    match save_file(file_path, blob) {
+        Ok(res) => Ok(res),
         Err(err) => Err(err.to_string()),
     }
 }
 
 fn main() {
+    let new_item = CustomMenuItem::new("new".to_string(), "New");
+    let open_item = CustomMenuItem::new("open".to_string(), "Open...");
+    let save_item = CustomMenuItem::new("save".to_string(), "Save");
+    let save_as_item = CustomMenuItem::new("save-as".to_string(), "Save as...");
+    let file_menu = Submenu::new(
+        "File",
+        Menu::new()
+            .add_item(new_item)
+            .add_item(open_item)
+            .add_item(save_item)
+            .add_item(save_as_item),
+    );
+    let menu = Menu::new().add_submenu(file_menu);
+
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![send_request])
+        .menu(menu)
+        .on_menu_event(|event| match event.menu_item_id() {
+            "new" => {
+                event.window().emit("new", ()).unwrap();
+            }
+            "open" => {
+                event.window().emit("open", ()).unwrap();
+            }
+            "save" => {
+                event.window().emit("save", ()).unwrap();
+            }
+            "save-as" => {
+                event.window().emit("save-as", ()).unwrap();
+            }
+            _ => {}
+        })
+        .invoke_handler(tauri::generate_handler![
+            send_sigv4_cmd,
+            open_file_cmd,
+            save_file_cmd
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
