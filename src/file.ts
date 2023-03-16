@@ -1,46 +1,27 @@
-import { OptionDefinition } from "@cloudscape-design/components/internal/components/option/interfaces";
-import { RequestHeader } from "@awspostman/components/RequestHeaderEditor";
+import { RequestPayload } from "./interfaces";
+const crypto = require('crypto');
 
-export interface RequestContent {
-  accessKey: string;
-  secretKey: string;
-  sessionToken: string;
-  region: string;
-  service: string;
-  methodOption: OptionDefinition;
-  url: string;
-  body: string;
-  headers: RequestHeader[];
+const uuidReText = `[0-9a-f]{32}`;
+const nameReText = `^(${uuidReText})\\-(\\w+)\\-(\\w+)\\.json$`;
+const nameRe = new RegExp(nameReText);
+
+export function generateId() {
+  return crypto.randomBytes(16).toString("hex");
 }
 
-export interface CollectionContent {
-  requests: RequestContent[];
-}
-
-class ContentCache {
-  private filePath: string | null;
-  private collection: CollectionContent | null;
-
-  constructor() {
-    this.filePath = null;
-    this.collection = null;
-  }
-
-  getCollection(): CollectionContent | null {
-    return this.collection;
-  }
-
-  setCollection(collection: CollectionContent | null) {
-    this.collection = collection;
-  }
-
-  getFilePath(): string | null {
-    return this.filePath;
-  }
-
-  setFilePath(filePath: string | null) {
-    this.filePath = filePath;
+export function parseRequestFileName(name: string) {
+  const m = nameRe.exec(name);
+  if (m) {
+    return {
+      id: m[1],
+      method: m[2],
+      name: m[3],
+    }
+  } else {
+    throw new Error("invalid name format");
   }
 }
 
-export const contentCache = new ContentCache();
+export function constructRequestFileName(id: string, method: string, name: string) {
+  return `${id}-${method}-${name}.json`;
+}

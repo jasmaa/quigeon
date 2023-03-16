@@ -7,6 +7,24 @@ export interface RequestHeader {
   editable: boolean,
 }
 
+const PREDEFINED_HEADERS = [
+  {
+    key: "Authorization",
+    value: "<calculated value>",
+    editable: false,
+  },
+  {
+    key: "x-amz-date",
+    value: "<calculated value>",
+    editable: false,
+  },
+  {
+    key: "x-amz-content-sha256",
+    value: "<calculated value>",
+    editable: false,
+  },
+];
+
 export default function RequestHeaderEditor({
   headers,
   onChange,
@@ -16,22 +34,25 @@ export default function RequestHeaderEditor({
 }) {
   return (
     <SpaceBetween size="m">
-      {headers.map((header, idx) => (
+      {[
+        ...PREDEFINED_HEADERS,
+        ...headers,
+      ].map((header, idx) => (
         <Grid key={idx} gridDefinition={[{ colspan: 5 }, { colspan: 5 }, { colspan: 2 }]}>
           <Input value={header.key} placeholder="Key" disabled={!header.editable} onChange={({ detail }) => {
             const updatedHeaders = [...headers];
-            updatedHeaders[idx].key = detail.value;
+            updatedHeaders[idx - PREDEFINED_HEADERS.length].key = detail.value;
             onChange(updatedHeaders);
           }} />
           <Input value={header.value} placeholder="Value" disabled={!header.editable} onChange={({ detail }) => {
             const updatedHeaders = [...headers];
-            updatedHeaders[idx].value = detail.value;
+            updatedHeaders[idx - PREDEFINED_HEADERS.length].value = detail.value;
             onChange(updatedHeaders);
           }} />
           <Button iconName="remove" variant="inline-icon" disabled={!header.editable} onClick={(e) => {
             e.preventDefault();
             const updatedHeaders = [...headers];
-            updatedHeaders.splice(idx, 1);
+            updatedHeaders.splice(idx - PREDEFINED_HEADERS.length, 1);
             onChange(updatedHeaders);
           }} />
         </Grid>
