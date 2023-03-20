@@ -58,7 +58,7 @@ export default function Home() {
         }).filter(request => request) as RequestPartial[];
         const collection: CollectionPartial = {
           name: collectionEntry.name!,
-          isOpen: true,
+          isOpen: false,
           requests,
         }
         return collection;
@@ -138,8 +138,15 @@ export default function Home() {
 
         console.log("saved");
 
-        const loadedCollections = await loadCollections();
-        setCollections(loadedCollections);
+        // Update collections
+        const updatedCollections = [...collections];
+        const targetCollection = updatedCollections.find(({ name }) => name === request.collectionName);
+        const targetRequest = targetCollection?.requests.find(({ id }) => id === request.id);
+        if (targetRequest) {
+          targetRequest.name = request.name;
+          targetRequest.method = request.method;
+        }
+        setCollections(updatedCollections);
       }
     })();
   }
