@@ -126,25 +126,28 @@ export default function Home() {
     })();
   }
 
-  const onRequestChange = (request: RequestPayload) => {
+  const onRequestChange = (updatedRequest: RequestPayload) => {
+    setRequest(updatedRequest);
+
+    // Save request
+    // TODO: debounce?
     (async () => {
-      // TODO: debounce?
-      if (request.collectionName) {
-        const updatedRequestPath = `collections/${request.collectionName}/${request.id}-${request.method}-${request.name}.json`;
-        const requestEntries = await readDir(`collections/${request.collectionName}`, { dir: BaseDirectory.AppData });
-        const targetRequestEntry = requestEntries.find((requestEntry) => requestEntry.name?.startsWith(request.id));
+      if (updatedRequest.collectionName) {
+        const updatedRequestPath = `collections/${updatedRequest.collectionName}/${updatedRequest.id}-${updatedRequest.method}-${updatedRequest.name}.json`;
+        const requestEntries = await readDir(`collections/${updatedRequest.collectionName}`, { dir: BaseDirectory.AppData });
+        const targetRequestEntry = requestEntries.find((requestEntry) => requestEntry.name?.startsWith(updatedRequest.id));
         await renameFile(targetRequestEntry!.path, updatedRequestPath, { dir: BaseDirectory.AppData });
-        await writeTextFile(updatedRequestPath, JSON.stringify(request), { dir: BaseDirectory.AppData });
+        await writeTextFile(updatedRequestPath, JSON.stringify(updatedRequest), { dir: BaseDirectory.AppData });
 
         console.log("saved");
 
         // Update collections
         const updatedCollections = [...collections];
-        const targetCollection = updatedCollections.find(({ name }) => name === request.collectionName);
-        const targetRequest = targetCollection?.requests.find(({ id }) => id === request.id);
+        const targetCollection = updatedCollections.find(({ name }) => name === updatedRequest.collectionName);
+        const targetRequest = targetCollection?.requests.find(({ id }) => id === updatedRequest.id);
         if (targetRequest) {
-          targetRequest.name = request.name;
-          targetRequest.method = request.method;
+          targetRequest.name = updatedRequest.name;
+          targetRequest.method = updatedRequest.method;
         }
         setCollections(updatedCollections);
       }
@@ -166,7 +169,7 @@ export default function Home() {
         />
         <SpaceBetween size="l" direction="vertical">
           <RequestContainer
-            initialRequest={request}
+            request={request}
             onSend={onSendRequest}
             onChange={onRequestChange}
           />

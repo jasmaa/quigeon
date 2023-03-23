@@ -1,63 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, ColumnLayout } from "@cloudscape-design/components";
-import RequestHeaderEditor, { RequestHeader } from "@awspostman/components/RequestHeaderEditor";
+import RequestHeaderEditor from "@awspostman/components/RequestHeaderEditor";
 import { RequestPayload } from "@awspostman/interfaces";
 
 export default function RequestContainer({
-  initialRequest,
+  request,
   loading = false,
   onChange,
   onSend,
 }: {
-  initialRequest: RequestPayload,
+  request: RequestPayload,
   loading?: boolean,
   onChange?: (requestContent: RequestPayload) => void,
   onSend?: (requestContent: RequestPayload) => void,
 }) {
-  const [name, setName] = useState<string>(initialRequest.name)
-  const [accessKey, setAccessKey] = useState<string>(initialRequest.accessKey);
-  const [secretKey, setSecretKey] = useState<string>(initialRequest.secretKey);
-  const [region, setRegion] = useState<string>(initialRequest.region);
-  const [service, setService] = useState<string>(initialRequest.service);
-  const [sessionToken, setSessionToken] = useState<string>(initialRequest.sessionToken);
-  const [method, setMethod] = useState<string>(initialRequest.method);
-  const [url, setUrl] = useState<string>(initialRequest.url);
-  const [body, setBody] = useState<string>(initialRequest.body);
-  const [headers, setHeaders] = useState<RequestHeader[]>(initialRequest.headers);
 
-  useEffect(() => {
-    // Update state if a different initial request is loaded
-    setName(initialRequest.name);
-    setAccessKey(initialRequest.accessKey);
-    setSecretKey(initialRequest.secretKey);
-    setRegion(initialRequest.region);
-    setService(initialRequest.service);
-    setSessionToken(initialRequest.sessionToken);
-    setMethod(initialRequest.method);
-    setUrl(initialRequest.url);
-    setBody(initialRequest.body);
-    setHeaders(initialRequest.headers);
-  }, [initialRequest]);
-
-  useEffect(() => {
-    // Sync collection on state change. State cannot be directly used in Tauri event listener
-    // since state is not reflecting updates in listen.
-    const request: RequestPayload = {
-      id: initialRequest.id,
-      name,
-      collectionName: initialRequest.collectionName,
-      accessKey,
-      secretKey,
-      sessionToken,
-      region,
-      service,
-      method,
-      url,
-      body,
-      headers,
-    };
-    onChange?.(request);
-  }, [
+  const {
+    name,
     accessKey,
     secretKey,
     sessionToken,
@@ -67,7 +26,7 @@ export default function RequestContainer({
     url,
     body,
     headers,
-  ]);
+  } = request;
 
   return (
     <Container header={
@@ -78,10 +37,10 @@ export default function RequestContainer({
     }>
       <form onSubmit={(e) => {
         e.preventDefault();
-        const request: RequestPayload = {
-          id: initialRequest.id,
+        const sendingRequest: RequestPayload = {
+          id: request.id,
           name,
-          collectionName: initialRequest.collectionName,
+          collectionName: request.collectionName,
           accessKey,
           secretKey,
           sessionToken,
@@ -92,13 +51,17 @@ export default function RequestContainer({
           body,
           headers,
         }
-        onSend?.(request);
+        onSend?.(sendingRequest);
       }}>
         <Grid gridDefinition={[{ colspan: 2 }, { colspan: 8 }, { colspan: 2 }]}>
           <Select
             selectedOption={{ label: method, value: method }}
             onChange={({ detail }) => {
-              setMethod(detail.selectedOption.value!);
+              const updatedRequest = {
+                ...request,
+                method: detail.selectedOption.value!,
+              };
+              onChange?.(updatedRequest);
             }
             }
             options={[
@@ -115,7 +78,11 @@ export default function RequestContainer({
             selectedAriaLabel="Selected"
           />
           <Input value={url} placeholder="URL" onChange={({ detail }) => {
-            setUrl(detail.value);
+            const updatedRequest = {
+              ...request,
+              url: detail.value,
+            };
+            onChange?.(updatedRequest);
           }} />
           <Button loading={loading}>Send</Button>
         </Grid>
@@ -130,13 +97,22 @@ export default function RequestContainer({
                     <FormField
                       label="Access Key">
                       <Input value={accessKey} placeholder="Access key" onChange={({ detail }) => {
-                        setAccessKey(detail.value);
+                        const updatedRequest = {
+                          ...request,
+                          accessKey: detail.value,
+                        };
+                        onChange?.(updatedRequest);
                       }} />
                     </FormField>
                     <FormField
                       label="Secret Key">
                       <Input value={secretKey} placeholder="Secret key" onChange={({ detail }) => {
-                        setSecretKey(detail.value);
+                        const updatedRequest = {
+                          ...request,
+                          secretKey: detail.value,
+                        };
+                        onChange?.(updatedRequest);
+
                       }} />
                     </FormField>
                   </SpaceBetween>
@@ -144,19 +120,31 @@ export default function RequestContainer({
                     <FormField
                       label="Region">
                       <Input value={region} placeholder="Region" onChange={({ detail }) => {
-                        setRegion(detail.value);
+                        const updatedRequest = {
+                          ...request,
+                          region: detail.value,
+                        };
+                        onChange?.(updatedRequest);
                       }} />
                     </FormField>
                     <FormField
                       label="Service">
                       <Input value={service} placeholder="Service" onChange={({ detail }) => {
-                        setService(detail.value);
+                        const updatedRequest = {
+                          ...request,
+                          service: detail.value,
+                        };
+                        onChange?.(updatedRequest);
                       }} />
                     </FormField>
                     <FormField
                       label="Session Token (optional)">
                       <Input value={sessionToken} placeholder="Session token" onChange={({ detail }) => {
-                        setSessionToken(detail.value);
+                        const updatedRequest = {
+                          ...request,
+                          sessionToken: detail.value,
+                        };
+                        onChange?.(updatedRequest);
                       }} />
                     </FormField>
                   </SpaceBetween>
@@ -167,7 +155,15 @@ export default function RequestContainer({
               label: "Headers",
               id: "headers",
               content: (
-                <RequestHeaderEditor headers={headers} onChange={(updatedHeaders) => { setHeaders(updatedHeaders) }} />
+                <RequestHeaderEditor
+                  headers={headers}
+                  onChange={(updatedHeaders) => {
+                    const updatedRequest = {
+                      ...request,
+                      headers: updatedHeaders,
+                    };
+                    onChange?.(updatedRequest);
+                  }} />
               )
             },
             {
@@ -175,7 +171,13 @@ export default function RequestContainer({
               id: "body",
               content: (
                 <Textarea
-                  onChange={({ detail }) => setBody(detail.value)}
+                  onChange={({ detail }) => {
+                    const updatedRequest = {
+                      ...request,
+                      body: detail.value,
+                    };
+                    onChange?.(updatedRequest);
+                  }}
                   value={body}
                   placeholder="Body"
                   rows={10}
