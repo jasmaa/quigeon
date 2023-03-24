@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { readDir, createDir, readTextFile, writeTextFile, renameFile, exists, BaseDirectory } from '@tauri-apps/api/fs';
 import { Box, SpaceBetween, Grid } from "@cloudscape-design/components";
@@ -7,6 +7,7 @@ import { generateId, parseRequestFileName } from "@awspostman/file";
 import CollectionNavigation from "@awspostman/components/CollectionNavigation";
 import RequestContainer from "@awspostman/components/RequestContainer";
 import ResponseContainer from "@awspostman/components/ResponseContainer";
+import { debounce } from "@awspostman/debounce";
 
 // Request id for matching current request when multiple requests are in flight
 let pendingRequestId: string | null = null;
@@ -91,10 +92,6 @@ export default function Home() {
   };
 
   const onSendRequest = (request: RequestPayload) => {
-    if (isSendingRequest) {
-      return;
-    }
-
     // Generate a unique id for this request
     const currentRequestId = crypto.randomUUID();
     pendingRequestId = currentRequestId;
@@ -126,33 +123,34 @@ export default function Home() {
     })();
   }
 
+  const saveRequest = useCallback(debounce((request: RequestPayload) => {
+    (async () => {
+      if (request.collectionName) {
+        const updatedRequestPath = `collections/${request.collectionName}/${request.id}-${request.method}-${request.name}.json`;
+        const requestEntries = await readDir(`collections/${request.collectionName}`, { dir: BaseDirectory.AppData });
+        const targetRequestEntry = requestEntries.find((requestEntry) => requestEntry.name?.startsWith(request.id));
+        await renameFile(targetRequestEntry!.path, updatedRequestPath, { dir: BaseDirectory.AppData });
+        await writeTextFile(updatedRequestPath, JSON.stringify(request), { dir: BaseDirectory.AppData });
+        console.log("saved");
+      }
+    })();
+  }, 500), []);
+
   const onRequestChange = (updatedRequest: RequestPayload) => {
     setRequest(updatedRequest);
 
-    // Save request
-    // TODO: debounce?
-    (async () => {
-      if (updatedRequest.collectionName) {
-        const updatedRequestPath = `collections/${updatedRequest.collectionName}/${updatedRequest.id}-${updatedRequest.method}-${updatedRequest.name}.json`;
-        const requestEntries = await readDir(`collections/${updatedRequest.collectionName}`, { dir: BaseDirectory.AppData });
-        const targetRequestEntry = requestEntries.find((requestEntry) => requestEntry.name?.startsWith(updatedRequest.id));
-        await renameFile(targetRequestEntry!.path, updatedRequestPath, { dir: BaseDirectory.AppData });
-        await writeTextFile(updatedRequestPath, JSON.stringify(updatedRequest), { dir: BaseDirectory.AppData });
+    // Update collections
+    const updatedCollections = [...collections];
+    const targetCollection = updatedCollections.find(({ name }) => name === updatedRequest.collectionName);
+    const targetRequest = targetCollection?.requests.find(({ id }) => id === updatedRequest.id);
+    if (targetRequest) {
+      targetRequest.name = updatedRequest.name;
+      targetRequest.method = updatedRequest.method;
+    }
+    setCollections(updatedCollections);
 
-        console.log("saved");
-
-        // Update collections
-        const updatedCollections = [...collections];
-        const targetCollection = updatedCollections.find(({ name }) => name === updatedRequest.collectionName);
-        const targetRequest = targetCollection?.requests.find(({ id }) => id === updatedRequest.id);
-        if (targetRequest) {
-          targetRequest.name = updatedRequest.name;
-          targetRequest.method = updatedRequest.method;
-        }
-        setCollections(updatedCollections);
-      }
-    })();
-  }
+    saveRequest(updatedRequest);
+  };
 
   const [response, setResponse] = useState<ResponsePayload>();
   const [responseErrorText, setResponseErrorText] = useState("");
