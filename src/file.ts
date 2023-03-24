@@ -1,16 +1,18 @@
-import { RequestPayload } from "./interfaces";
 const crypto = require('crypto');
 
 const uuidReText = `[0-9a-f]{32}`;
-const nameReText = `^(${uuidReText})\\-(\\w+)\\-(\\w+)\\.json$`;
-const nameRe = new RegExp(nameReText);
+const requestNameReText = `\\w{1,20}`;
+const requestFileNameReText = `(${uuidReText})\\-(\\w+)\\-(${requestNameReText})\\.json`;
+
+const requestNameRe = new RegExp(`^${requestNameReText}$`);
+const requestFileNameRe = new RegExp(`^${requestFileNameReText}$`);
 
 export function generateId() {
   return crypto.randomBytes(16).toString("hex");
 }
 
 export function parseRequestFileName(name: string) {
-  const m = nameRe.exec(name);
+  const m = requestFileNameRe.exec(name);
   if (m) {
     return {
       id: m[1],
@@ -24,4 +26,8 @@ export function parseRequestFileName(name: string) {
 
 export function constructRequestFileName(id: string, method: string, name: string) {
   return `${id}-${method}-${name}.json`;
+}
+
+export function validateRequestName(name: string) {
+  return requestNameRe.test(name);
 }

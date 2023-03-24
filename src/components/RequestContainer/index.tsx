@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, ColumnLayout } from "@cloudscape-design/components";
 import RequestHeaderEditor from "@awspostman/components/RequestHeaderEditor";
 import { RequestPayload } from "@awspostman/interfaces";
+import { validateRequestName } from "@awspostman/file";
 
 export default function RequestContainer({
   request,
@@ -14,7 +15,6 @@ export default function RequestContainer({
   onChange?: (requestContent: RequestPayload) => void,
   onSend?: (requestContent: RequestPayload) => void,
 }) {
-
   const {
     name,
     accessKey,
@@ -28,12 +28,46 @@ export default function RequestContainer({
     headers,
   } = request;
 
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [pendingName, setPendingName] = useState(name);
+  const [isPendingNameValid, setIsPendingNameValid] = useState(true);
+
   return (
     <Container header={
-      <SpaceBetween size="m" direction="horizontal">
-        <Header variant="h2">{name}</Header>
-        <Button iconName="edit" variant="icon" />
-      </SpaceBetween>
+      isEditingName
+        ? (
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const isValid = validateRequestName(pendingName);
+            setIsPendingNameValid(isValid);
+            if (isValid) {
+              const updatedRequest = {
+                ...request,
+                name: pendingName,
+              };
+              onChange?.(updatedRequest);
+              setIsEditingName(!isEditingName);
+            }
+          }}>
+            <SpaceBetween size="m" direction="horizontal">
+              <Input value={pendingName} invalid={!isPendingNameValid} autoFocus onChange={({ detail }) => {
+                setPendingName(detail.value);
+              }} />
+              <Button iconName="check" variant="icon" />
+            </SpaceBetween>
+          </form>
+        )
+        : (
+          <SpaceBetween size="m" direction="horizontal">
+            <Header variant="h2">{name}</Header>
+            <Button iconName="edit" variant="icon" onClick={
+              () => {
+                setPendingName(name);
+                setIsEditingName(!isEditingName);
+              }
+            } />
+          </SpaceBetween>
+        )
     }>
       <form onSubmit={(e) => {
         e.preventDefault();
@@ -187,6 +221,6 @@ export default function RequestContainer({
           ]}
         />
       </form>
-    </Container>
+    </Container >
   );
 }
