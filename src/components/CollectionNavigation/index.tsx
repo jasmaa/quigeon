@@ -1,16 +1,20 @@
 import React from "react";
 import { Box, Button, Header, Container, SpaceBetween } from "@cloudscape-design/components";
-import { CollectionPartial, RequestPartial } from "@awspostman/interfaces";
+import { CollectionPartial, RequestPartial, RequestPayload } from "@awspostman/interfaces";
 import { generateId } from "@awspostman/file";
 
 export default function CollectionNavigation({
   collections,
-  onChange,
+  onOpenCollection,
   onOpenRequest,
+  onAddRequest,
+  onAddCollection,
 }: {
   collections: CollectionPartial[];
-  onChange?: (collections: CollectionPartial[]) => void;
+  onOpenCollection?: (collection: CollectionPartial) => void;
   onOpenRequest?: (request: RequestPartial) => void;
+  onAddRequest?: (request: RequestPayload) => void;
+  onAddCollection?: (collection: CollectionPartial) => void;
 }) {
 
   return (
@@ -20,16 +24,11 @@ export default function CollectionNavigation({
       </Header>
     }>
       <SpaceBetween size="s" direction="vertical">
-        {collections.map((collection, collectionIdx) => (
+        {collections.map((collection) => (
           <SpaceBetween direction="vertical" size="xxxs">
             <SpaceBetween direction="horizontal" size="xxxs">
               <Button iconName={collection.isOpen ? "folder-open" : "folder"} variant="link" onClick={() => {
-                const updatedCollections = [...collections];
-                updatedCollections[collectionIdx] = {
-                  ...collection,
-                  isOpen: !collection.isOpen,
-                }
-                onChange?.(updatedCollections);
+                onOpenCollection?.(collection);
               }}>{collection.name}</Button>
               <Button iconName="edit" variant="icon" />
             </SpaceBetween>
@@ -42,17 +41,22 @@ export default function CollectionNavigation({
                     }}>{request.method} {request.name}</Button>
                   ))}
                   <Button iconName="add-plus" onClick={() => {
-                    const updatedCollections = [...collections];
-                    const updatedCollection = updatedCollections[collectionIdx];
-                    updatedCollection.requests.push({
+                    const addedRequest: RequestPayload = {
                       id: generateId(),
                       name: "My Request",
-                      collectionId: updatedCollection.id,
-                      collectionName: updatedCollection.name,
+                      collectionId: collection.id,
+                      collectionName: collection.name,
+                      accessKey: "",
+                      secretKey: "",
+                      sessionToken: "",
+                      region: "",
+                      service: "",
                       method: "GET",
-                    });
-                    onChange?.(updatedCollections);
-                    // TODO: save request as file
+                      url: "",
+                      body: "",
+                      headers: [],
+                    };
+                    onAddRequest?.(addedRequest);
                   }}>Add</Button>
                 </SpaceBetween>
               </Box>
@@ -60,17 +64,13 @@ export default function CollectionNavigation({
           </SpaceBetween>
         ))}
         <Button iconName="add-plus" onClick={() => {
-          const updatedCollections = [
-            ...collections,
-            {
-              id: generateId(),
-              name: "My Collection",
-              isOpen: false,
-              requests: [],
-            }
-          ];
-          onChange?.(updatedCollections);
-          // TODO: save collection as folder
+          const addedCollection = {
+            id: generateId(),
+            name: "My Collection",
+            isOpen: false,
+            requests: [],
+          }
+          onAddCollection?.(addedCollection);
         }}>Add</Button>
       </SpaceBetween>
     </Container>
