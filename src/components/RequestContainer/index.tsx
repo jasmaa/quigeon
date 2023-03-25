@@ -74,6 +74,7 @@ export default function RequestContainer({
         const sendingRequest: RequestPayload = {
           id: request.id,
           name,
+          collectionId: request.collectionId,
           collectionName: request.collectionName,
           accessKey,
           secretKey,

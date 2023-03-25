@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { readDir, createDir, readTextFile, writeTextFile, renameFile, exists, BaseDirectory } from '@tauri-apps/api/fs';
 import { Box, SpaceBetween, Grid } from "@cloudscape-design/components";
 import { RequestPartial, CollectionPartial, RequestPayload, ResponsePayload } from "@awspostman/interfaces";
-import { generateId, parseRequestFileName } from "@awspostman/file";
+import { generateId, parseRequestFileName, parseCollectionFolderName, constructCollectionFolderName, constructRequestFileName } from "@awspostman/file";
 import CollectionNavigation from "@awspostman/components/CollectionNavigation";
 import RequestContainer from "@awspostman/components/RequestContainer";
 import ResponseContainer from "@awspostman/components/ResponseContainer";
@@ -16,7 +16,8 @@ export default function Home() {
   const [collections, setCollections] = useState<CollectionPartial[]>([]);
   const [request, setRequest] = useState<RequestPayload>({
     id: generateId(),
-    name: "request",
+    name: "My Request",
+    collectionId: "",
     collectionName: "",
     accessKey: "",
     secretKey: "",
@@ -40,31 +41,37 @@ export default function Home() {
     // Load collections and requests from directory
     const collectionEntries = await readDir('collections', { dir: BaseDirectory.AppData });
     const loadedCollections: CollectionPartial[] = await Promise.all(
-      collectionEntries.map(async (collectionEntry) => {
-        const requestEntries = await readDir(`collections/${collectionEntry.name}`, { dir: BaseDirectory.AppData });
-        const requests = requestEntries.map((requestEntry) => {
-          // Request file name follows <METHOD>-<NAME>.json format
-          try {
-            const { id, name, method } = parseRequestFileName(requestEntry.name!);
-            const request: RequestPartial = {
-              id,
-              name,
-              collectionName: collectionEntry.name!,
-              method,
-            };
-            return request;
-          } catch (err) {
-            return null;
+      collectionEntries
+        .map(async (collectionEntry) => {
+          if (collectionEntry.name) {
+            const collectionParse = parseCollectionFolderName(collectionEntry.name);
+            const requestEntries = await readDir(`collections/${collectionEntry.name}`, { dir: BaseDirectory.AppData });
+            const requests = requestEntries.map((requestEntry) => {
+              try {
+                const requestParse = parseRequestFileName(requestEntry.name!);
+                const request: RequestPartial = {
+                  id: requestParse.id,
+                  name: requestParse.name,
+                  collectionId: collectionParse.id,
+                  collectionName: collectionParse.name,
+                  method: requestParse.method,
+                };
+                return request;
+              } catch (err) {
+                return null;
+              }
+            }).filter(request => request) as RequestPartial[];
+            const collection: CollectionPartial = {
+              id: collectionParse.id,
+              name: collectionParse.name,
+              isOpen: false,
+              requests,
+            }
+            return collection;
           }
-        }).filter(request => request) as RequestPartial[];
-        const collection: CollectionPartial = {
-          name: collectionEntry.name!,
-          isOpen: false,
-          requests,
-        }
-        return collection;
-      })
-    );
+        })
+        .filter((collection) => !!collection)
+    ) as CollectionPartial[];
 
     return loadedCollections;
   }
@@ -78,7 +85,9 @@ export default function Home() {
 
   const onOpenRequest = (request: RequestPartial) => {
     (async () => {
-      const requestPath = `collections/${request.collectionName}/${request.id}-${request.method}-${request.name}.json`;
+      const collectionFolderName = constructCollectionFolderName(request.collectionId, request.collectionName);
+      const requestFileName = constructRequestFileName(request.id, request.method, request.name);
+      const requestPath = `collections/${collectionFolderName}/${requestFileName}`;
       const blob: string = await readTextFile(requestPath, { dir: BaseDirectory.AppConfig });
       const requestContent = JSON.parse(blob);
       if (requestContent) {
@@ -126,8 +135,10 @@ export default function Home() {
   const saveRequest = useCallback(debounce((request: RequestPayload) => {
     (async () => {
       if (request.collectionName) {
-        const updatedRequestPath = `collections/${request.collectionName}/${request.id}-${request.method}-${request.name}.json`;
-        const requestEntries = await readDir(`collections/${request.collectionName}`, { dir: BaseDirectory.AppData });
+        const collectionFolderName = constructCollectionFolderName(request.collectionId, request.collectionName);
+        const requestFileName = constructRequestFileName(request.id, request.method, request.name);
+        const updatedRequestPath = `collections/${collectionFolderName}/${requestFileName}`;
+        const requestEntries = await readDir(`collections/${collectionFolderName}`, { dir: BaseDirectory.AppData });
         const targetRequestEntry = requestEntries.find((requestEntry) => requestEntry.name?.startsWith(request.id));
         await renameFile(targetRequestEntry!.path, updatedRequestPath, { dir: BaseDirectory.AppData });
         await writeTextFile(updatedRequestPath, JSON.stringify(request), { dir: BaseDirectory.AppData });
@@ -161,7 +172,7 @@ export default function Home() {
         <CollectionNavigation
           collections={collections}
           onChange={(updatedCollections) => {
-            setCollections(updatedCollections)
+            setCollections(updatedCollections);
           }}
           onOpenRequest={onOpenRequest}
         />
