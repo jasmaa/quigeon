@@ -75,7 +75,6 @@ export default function RequestContainer({
           id: request.id,
           name,
           collectionId: request.collectionId,
-          collectionName: request.collectionName,
           accessKey,
           secretKey,
           sessionToken,

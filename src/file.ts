@@ -50,6 +50,9 @@ export function constructCollectionFolderName(id: string, name: string) {
   return `${id}-${name}`;
 }
 
+export function validateCollectionName(name: string) {
+  return collectionNameRe.test(name);
+}
 
 export function validateRequestName(name: string) {
   return requestNameRe.test(name);

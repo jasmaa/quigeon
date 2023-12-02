@@ -13,8 +13,7 @@
   "tauri": {
     "allowlist": {
       "dialog": {
-        "open": true,
-        "save": true
+        "all": true
       },
       "fs": {
         "all": true,
