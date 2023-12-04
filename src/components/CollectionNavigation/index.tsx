@@ -1,23 +1,17 @@
 import React from "react";
 import { Button, Header, Container, SpaceBetween, } from "@cloudscape-design/components";
-import { CollectionDisplay, CollectionPartial, RequestDisplay, RequestPayload } from "@awspostman/interfaces";
-import { generateId } from "@awspostman/file";
-import Collection from "./Collection";
+import { CollectionDisplay, Collection, RequestDisplay, Request } from "@awspostman/interfaces";
+import { generateId, getOrCreateStore } from "@awspostman/store";
+import CollectionFolder from "./CollectionFolder";
 
 export default function CollectionNavigation({
   collectionDisplays,
   setCollectionDisplays,
   setRequestDisplay,
-  saveRequest,
-  saveCollection,
-  deleteCollection,
 }: {
   collectionDisplays: CollectionDisplay[];
   setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
   setRequestDisplay: (requestIndices: RequestDisplay) => void;
-  saveRequest?: (request: RequestPayload) => Promise<void>
-  saveCollection?: (collection: CollectionPartial) => Promise<void>
-  deleteCollection?: (collection: CollectionPartial) => Promise<void>
 }) {
 
   return (
@@ -28,18 +22,15 @@ export default function CollectionNavigation({
     }>
       <SpaceBetween size="s" direction="vertical">
         {collectionDisplays.map((collectionDisplay, collectionDisplayIdx) => (
-          <Collection
+          <CollectionFolder
             key={collectionDisplay.collection.id}
             collectionDisplays={collectionDisplays}
             setCollectionDisplays={setCollectionDisplays}
             collectionDisplayIdx={collectionDisplayIdx}
             setRequestDisplay={setRequestDisplay}
-            saveRequest={saveRequest}
-            saveCollection={saveCollection}
-            deleteCollection={deleteCollection}
           />
         ))}
-        <Button iconName="add-plus" onClick={() => {
+        <Button iconName="add-plus" onClick={async () => {
           const addedCollectionDisplay = {
             collection: {
               id: generateId(),
@@ -54,7 +45,8 @@ export default function CollectionNavigation({
           const updatedCollectionDisplays = [...collectionDisplays, addedCollectionDisplay];
           setCollectionDisplays(updatedCollectionDisplays);
 
-          saveCollection?.(addedCollectionDisplay.collection);
+          const store = await getOrCreateStore();
+          await store.upsertCollection(addedCollectionDisplay.collection);
         }}>Add</Button>
       </SpaceBetween>
     </Container>

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, ColumnLayout } from "@cloudscape-design/components";
 import RequestHeaderEditor from "@awspostman/components/RequestHeaderEditor";
-import { RequestDisplay, RequestPayload } from "@awspostman/interfaces";
-import { validateRequestName } from "@awspostman/file";
+import { RequestDisplay, Request } from "@awspostman/interfaces";
+import { validateRequestName } from "@awspostman/validators";
 
 export default function RequestContainer({
   requestDisplay,
@@ -13,7 +13,7 @@ export default function RequestContainer({
   requestDisplay: RequestDisplay,
   loading?: boolean,
   onChange?: (requestDisplay: RequestDisplay) => void,
-  onSend?: (request: RequestPayload) => void,
+  onSend?: (request: Request) => void,
 }) {
   const { request } = requestDisplay;
   const {
@@ -76,7 +76,7 @@ export default function RequestContainer({
     }>
       <form onSubmit={(e) => {
         e.preventDefault();
-        const sendingRequest: RequestPayload = {
+        const sendingRequest: Request = {
           id: request.id,
           name,
           collectionId: request.collectionId,

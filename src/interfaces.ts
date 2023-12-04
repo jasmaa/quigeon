@@ -1,26 +1,19 @@
 export interface CollectionDisplay {
-  collection: CollectionPartial;
-  requests: RequestPayload[];
+  collection: Collection;
+  requests: Request[];
 }
 
 export interface RequestDisplay {
-  request: RequestPayload
+  request: Request
   indices?: {
     collectionDisplayIdx: number
     requestIdx: number
   }
 }
 
-export interface CollectionPartial {
+export interface Collection {
   id: string;
   name: string;
-}
-
-export interface RequestPartial {
-  id: string;
-  name: string;
-  collectionId: string;
-  method: string;
 }
 
 export interface RequestHeader {
@@ -29,7 +22,7 @@ export interface RequestHeader {
   editable: boolean,
 }
 
-export interface RequestPayload {
+export interface Request {
   id: string;
   name: string;
   collectionId: string;

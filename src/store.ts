@@ -1,21 +1,28 @@
 import Database from "tauri-plugin-sql-api";
-import { CollectionPartial, RequestPayload } from "./interfaces";
+import { Collection, Request } from "./interfaces";
 
-export default class Store {
+export function generateId() {
+  const crypto = require('crypto');
+  return crypto.randomBytes(16).toString("hex");
+}
+
+class Store {
   private path: string;
   private db?: Database;
+  private isInitialized: boolean;
 
   constructor(path: string) {
     this.path = path;
+    this.isInitialized = false;
   }
 
   async initialize() {
-    this.db = await Database.load(this.path)
-    this.db.execute(`CREATE TABLE IF NOT EXISTS collections (
+    this.db = await Database.load(this.path);
+    await this.db.execute(`CREATE TABLE IF NOT EXISTS collections (
       id VARCHAR(32) PRIMARY KEY,
       name VARCHAR(256)
     )`);
-    this.db.execute(`CREATE TABLE IF NOT EXISTS requests (
+    await this.db.execute(`CREATE TABLE IF NOT EXISTS requests (
       id VARCHAR(32) PRIMARY KEY,
       name VARCHAR(256),
       collectionId VARCHAR(32),
@@ -29,10 +36,14 @@ export default class Store {
       body BLOB,
       headers BLOB
     )`);
+    this.isInitialized = true;
   }
 
+  getIsInitialized() {
+    return this.isInitialized;
+  }
 
-  async upsertCollection(collection: CollectionPartial): Promise<CollectionPartial> {
+  async upsertCollection(collection: Collection): Promise<Collection> {
     await this.db?.execute(
       `INSERT into collections (id, name) VALUES ($1, $2)
       ON CONFLICT(id)
@@ -42,9 +53,9 @@ export default class Store {
     return collection;
   }
 
-  async listCollections(): Promise<CollectionPartial[]> {
+  async listCollections(): Promise<Collection[]> {
     const rows = await this.db?.select("SELECT * FROM collections") as any[];
-    return rows as CollectionPartial[];
+    return rows as Collection[];
   }
 
   async deleteCollection(id: string): Promise<void> {
@@ -54,7 +65,7 @@ export default class Store {
     );
   }
 
-  async upsertRequest(request: RequestPayload): Promise<RequestPayload> {
+  async upsertRequest(request: Request): Promise<Request> {
     await this.db?.execute(
       `INSERT into requests (id, name, collectionId, accessKey, secretKey, sessionToken, region, service, method, url, body, headers)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
@@ -65,19 +76,19 @@ export default class Store {
     return request;
   }
 
-  async getRequest(id: string): Promise<RequestPayload> {
+  async getRequest(id: string): Promise<Request> {
     const rows = await this.db?.select("SELECT * FROM requests WHERE id=$1", [id]) as any[];
     const row = rows[0];
     row.headers = JSON.parse(row.headers);
-    return row as RequestPayload;
+    return row as Request;
   }
 
-  async listRequests(collectionId: string): Promise<RequestPayload[]> {
+  async listRequests(collectionId: string): Promise<Request[]> {
     const rows = await this.db?.select("SELECT * FROM requests WHERE collectionId=$1", [collectionId]) as any[];
     for (const row of rows) {
       row.headers = JSON.parse(row.headers);
     }
-    return rows as RequestPayload[];
+    return rows as Request[];
   }
 
   async deleteRequest(id: string): Promise<void> {
@@ -85,5 +96,16 @@ export default class Store {
       `DELETE FROM requests WHERE id=$1`,
       [id],
     );
+  }
+}
+
+let store: Store;
+export async function getOrCreateStore() {
+  if (store && store.getIsInitialized()) {
+    return store;
+  } else {
+    store = new Store("sqlite:data.db");
+    await store.initialize();
+    return store;
   }
 }

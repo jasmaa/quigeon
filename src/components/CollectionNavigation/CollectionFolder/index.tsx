@@ -1,24 +1,19 @@
-import { generateId, validateCollectionName } from "@awspostman/file";
-import { CollectionDisplay, CollectionPartial, RequestDisplay, RequestPayload } from "@awspostman/interfaces";
-import { Box, Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { useState } from "react";
+import { Box, Button, Input, SpaceBetween } from "@cloudscape-design/components";
+import { validateCollectionName } from "@awspostman/validators";
+import { generateId, getOrCreateStore } from "@awspostman/store";
+import { CollectionDisplay, Collection, RequestDisplay, Request } from "@awspostman/interfaces";
 
-export default function Collection({
+export default function CollectionFolder({
   collectionDisplays,
   setCollectionDisplays,
   collectionDisplayIdx,
   setRequestDisplay,
-  saveRequest,
-  saveCollection,
-  deleteCollection,
 }: {
   collectionDisplays: CollectionDisplay[];
   setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
   collectionDisplayIdx: number;
   setRequestDisplay: (setRequestDisplay: RequestDisplay) => void;
-  saveRequest?: (request: RequestPayload) => Promise<void>
-  saveCollection?: (collection: CollectionPartial) => Promise<void>
-  deleteCollection?: (collection: CollectionPartial) => Promise<void>
 }) {
   const { collection, requests } = collectionDisplays[collectionDisplayIdx];
 
@@ -28,7 +23,7 @@ export default function Collection({
   const [isPendingNameValid, setIsPendingNameValid] = useState(true);
 
   const onAddRequest = async () => {
-    const addedRequest: RequestPayload = {
+    const addedRequest: Request = {
       id: generateId(),
       name: "My Request",
       collectionId: collection.id,
@@ -48,7 +43,8 @@ export default function Collection({
     updatedCollectionDisplays[collectionDisplayIdx].requests = updatedRequests;
     setCollectionDisplays(updatedCollectionDisplays);
 
-    saveRequest?.(addedRequest);
+    const store = await getOrCreateStore();
+    await store.upsertRequest(addedRequest);
   }
 
   return (
@@ -58,7 +54,7 @@ export default function Collection({
         {
           isEditingName
             ? (
-              <form onSubmit={(e) => {
+              <form onSubmit={async (e) => {
                 e.preventDefault();
                 const isValid = validateCollectionName(pendingName);
                 setIsPendingNameValid(isValid);
@@ -67,7 +63,8 @@ export default function Collection({
                   updatedCollectionDisplays[collectionDisplayIdx].collection.name = pendingName;
                   setCollectionDisplays(updatedCollectionDisplays);
 
-                  saveCollection?.(updatedCollectionDisplays[collectionDisplayIdx].collection);
+                  const store = await getOrCreateStore();
+                  await store.upsertCollection(updatedCollectionDisplays[collectionDisplayIdx].collection);
 
                   setIsEditingName(false);
                 }
@@ -98,7 +95,8 @@ export default function Collection({
             updatedCollectionDisplays.splice(collectionDisplayIdx, 1);
             setCollectionDisplays?.(updatedCollectionDisplays);
 
-            deleteCollection?.(collectionDisplays[collectionDisplayIdx].collection);
+            const store = await getOrCreateStore();
+            await store.deleteCollection(collectionDisplays[collectionDisplayIdx].collection.id);
           }
         }} />
       </SpaceBetween>
@@ -107,7 +105,7 @@ export default function Collection({
           <Box margin={{ left: "l" }}>
             <SpaceBetween direction="vertical" size="xxxs">
               {requests.map((request, requestIdx) => (
-                <Button variant="link" iconName="file" onClick={() => {
+                <Button key={request.id} variant="link" iconName="file" onClick={() => {
                   setRequestDisplay({
                     request: collectionDisplays[collectionDisplayIdx].requests[requestIdx],
                     indices: {
@@ -122,6 +120,6 @@ export default function Collection({
           </Box>
         )
       }
-    </SpaceBetween >
+    </SpaceBetween>
   );
 }
