@@ -1,30 +1,55 @@
-import { validateCollectionName } from "@awspostman/file";
-import { CollectionPartial, RequestPartial } from "@awspostman/interfaces";
+import { generateId, validateCollectionName } from "@awspostman/file";
+import { CollectionDisplay, CollectionPartial, RequestDisplay, RequestPayload } from "@awspostman/interfaces";
 import { Box, Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { useState } from "react";
 
 export default function Collection({
-  collections,
-  collectionIdx,
-  onSaveCollectionName,
-  onDeleteCollection,
-  onOpenRequest,
-  onAddRequest,
+  collectionDisplays,
+  setCollectionDisplays,
+  collectionDisplayIdx,
+  setRequestDisplay,
+  saveRequest,
+  saveCollection,
+  deleteCollection,
 }: {
-  collections: CollectionPartial[]
-  collectionIdx: number
-  onSaveCollectionName?: (name: string) => void;
-  onDeleteCollection?: () => Promise<void>
-  onOpenRequest?: (request: RequestPartial) => void;
-  onAddRequest?: () => void
+  collectionDisplays: CollectionDisplay[];
+  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
+  collectionDisplayIdx: number;
+  setRequestDisplay: (setRequestDisplay: RequestDisplay) => void;
+  saveRequest?: (request: RequestPayload) => Promise<void>
+  saveCollection?: (collection: CollectionPartial) => Promise<void>
+  deleteCollection?: (collection: CollectionPartial) => Promise<void>
 }) {
-
-  const collection = collections[collectionIdx];
+  const { collection, requests } = collectionDisplays[collectionDisplayIdx];
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [pendingName, setPendingName] = useState(collection.name);
   const [isPendingNameValid, setIsPendingNameValid] = useState(true);
+
+  const onAddRequest = async () => {
+    const addedRequest: RequestPayload = {
+      id: generateId(),
+      name: "My Request",
+      collectionId: collection.id,
+      accessKey: "",
+      secretKey: "",
+      sessionToken: "",
+      region: "",
+      service: "",
+      method: "GET",
+      url: "",
+      body: "",
+      headers: [],
+    };
+
+    const updatedCollectionDisplays = [...collectionDisplays];
+    const updatedRequests = [...updatedCollectionDisplays[collectionDisplayIdx].requests, addedRequest];
+    updatedCollectionDisplays[collectionDisplayIdx].requests = updatedRequests;
+    setCollectionDisplays(updatedCollectionDisplays);
+
+    saveRequest?.(addedRequest);
+  }
 
   return (
     <SpaceBetween direction="vertical" size="xxxs">
@@ -38,7 +63,12 @@ export default function Collection({
                 const isValid = validateCollectionName(pendingName);
                 setIsPendingNameValid(isValid);
                 if (isValid) {
-                  onSaveCollectionName?.(pendingName);
+                  const updatedCollectionDisplays = [...collectionDisplays];
+                  updatedCollectionDisplays[collectionDisplayIdx].collection.name = pendingName;
+                  setCollectionDisplays(updatedCollectionDisplays);
+
+                  saveCollection?.(updatedCollectionDisplays[collectionDisplayIdx].collection);
+
                   setIsEditingName(false);
                 }
               }}>
@@ -61,15 +91,30 @@ export default function Collection({
               </SpaceBetween>
             )
         }
-        <Button iconName="remove" variant="icon" onClick={onDeleteCollection} />
+        <Button iconName="remove" variant="icon" onClick={async () => {
+          const isConfirmed = await confirm(`Delete "${collection.name}"?`);
+          if (isConfirmed) {
+            const updatedCollectionDisplays = [...collectionDisplays];
+            updatedCollectionDisplays.splice(collectionDisplayIdx, 1);
+            setCollectionDisplays?.(updatedCollectionDisplays);
+
+            deleteCollection?.(collectionDisplays[collectionDisplayIdx].collection);
+          }
+        }} />
       </SpaceBetween>
       {
         isOpen && (
           <Box margin={{ left: "l" }}>
             <SpaceBetween direction="vertical" size="xxxs">
-              {collection.requests.map((request) => (
+              {requests.map((request, requestIdx) => (
                 <Button variant="link" iconName="file" onClick={() => {
-                  onOpenRequest?.(request);
+                  setRequestDisplay({
+                    request: collectionDisplays[collectionDisplayIdx].requests[requestIdx],
+                    indices: {
+                      collectionDisplayIdx,
+                      requestIdx,
+                    }
+                  });
                 }}>{request.method} {request.name}</Button>
               ))}
               <Button iconName="add-plus" onClick={onAddRequest}>Add</Button>

@@ -1,11 +1,6 @@
 import React from "react";
 import { Button, SpaceBetween, Grid, Input } from "@cloudscape-design/components";
-
-export interface RequestHeader {
-  key: string,
-  value: string,
-  editable: boolean,
-}
+import { RequestHeader } from "@awspostman/interfaces";
 
 const PREDEFINED_HEADERS = [
   {

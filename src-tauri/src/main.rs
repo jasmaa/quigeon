@@ -201,6 +201,7 @@ fn main() {
             open_file_cmd,
             save_file_cmd
         ])
+        .plugin(tauri_plugin_sql::Builder::default().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

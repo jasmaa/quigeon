@@ -1,9 +1,19 @@
+export interface CollectionDisplay {
+  collection: CollectionPartial;
+  requests: RequestPayload[];
+}
+
+export interface RequestDisplay {
+  request: RequestPayload
+  indices?: {
+    collectionDisplayIdx: number
+    requestIdx: number
+  }
+}
+
 export interface CollectionPartial {
   id: string;
   name: string;
-  isOpen: boolean;
-  isEditing: boolean;
-  requests: RequestPartial[],
 }
 
 export interface RequestPartial {
@@ -11,6 +21,12 @@ export interface RequestPartial {
   name: string;
   collectionId: string;
   method: string;
+}
+
+export interface RequestHeader {
+  key: string,
+  value: string,
+  editable: boolean,
 }
 
 export interface RequestPayload {

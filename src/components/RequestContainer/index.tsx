@@ -1,20 +1,21 @@
 import React, { useState } from "react";
 import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, ColumnLayout } from "@cloudscape-design/components";
 import RequestHeaderEditor from "@awspostman/components/RequestHeaderEditor";
-import { RequestPayload } from "@awspostman/interfaces";
+import { RequestDisplay, RequestPayload } from "@awspostman/interfaces";
 import { validateRequestName } from "@awspostman/file";
 
 export default function RequestContainer({
-  request,
+  requestDisplay,
   loading = false,
   onChange,
   onSend,
 }: {
-  request: RequestPayload,
+  requestDisplay: RequestDisplay,
   loading?: boolean,
-  onChange?: (requestContent: RequestPayload) => void,
-  onSend?: (requestContent: RequestPayload) => void,
+  onChange?: (requestDisplay: RequestDisplay) => void,
+  onSend?: (request: RequestPayload) => void,
 }) {
+  const { request } = requestDisplay;
   const {
     name,
     accessKey,
@@ -45,7 +46,11 @@ export default function RequestContainer({
                 ...request,
                 name: pendingName,
               };
-              onChange?.(updatedRequest);
+              const updatedRequestDisplay = {
+                request: updatedRequest,
+                indices: requestDisplay.indices,
+              };
+              onChange?.(updatedRequestDisplay);
               setIsEditingName(!isEditingName);
             }
           }}>
@@ -95,7 +100,11 @@ export default function RequestContainer({
                 ...request,
                 method: detail.selectedOption.value!,
               };
-              onChange?.(updatedRequest);
+              const updatedRequestDisplay = {
+                request: updatedRequest,
+                indices: requestDisplay.indices,
+              };
+              onChange?.(updatedRequestDisplay);
             }
             }
             options={[
@@ -116,7 +125,11 @@ export default function RequestContainer({
               ...request,
               url: detail.value,
             };
-            onChange?.(updatedRequest);
+            const updatedRequestDisplay = {
+              request: updatedRequest,
+              indices: requestDisplay.indices,
+            };
+            onChange?.(updatedRequestDisplay);
           }} />
           <Button loading={loading}>Send</Button>
         </Grid>
@@ -135,7 +148,11 @@ export default function RequestContainer({
                           ...request,
                           accessKey: detail.value,
                         };
-                        onChange?.(updatedRequest);
+                        const updatedRequestDisplay = {
+                          request: updatedRequest,
+                          indices: requestDisplay.indices,
+                        };
+                        onChange?.(updatedRequestDisplay);
                       }} />
                     </FormField>
                     <FormField
@@ -145,7 +162,11 @@ export default function RequestContainer({
                           ...request,
                           secretKey: detail.value,
                         };
-                        onChange?.(updatedRequest);
+                        const updatedRequestDisplay = {
+                          request: updatedRequest,
+                          indices: requestDisplay.indices,
+                        };
+                        onChange?.(updatedRequestDisplay);
 
                       }} />
                     </FormField>
@@ -158,7 +179,11 @@ export default function RequestContainer({
                           ...request,
                           region: detail.value,
                         };
-                        onChange?.(updatedRequest);
+                        const updatedRequestDisplay = {
+                          request: updatedRequest,
+                          indices: requestDisplay.indices,
+                        };
+                        onChange?.(updatedRequestDisplay);
                       }} />
                     </FormField>
                     <FormField
@@ -168,7 +193,11 @@ export default function RequestContainer({
                           ...request,
                           service: detail.value,
                         };
-                        onChange?.(updatedRequest);
+                        const updatedRequestDisplay = {
+                          request: updatedRequest,
+                          indices: requestDisplay.indices,
+                        };
+                        onChange?.(updatedRequestDisplay);
                       }} />
                     </FormField>
                     <FormField
@@ -178,7 +207,11 @@ export default function RequestContainer({
                           ...request,
                           sessionToken: detail.value,
                         };
-                        onChange?.(updatedRequest);
+                        const updatedRequestDisplay = {
+                          request: updatedRequest,
+                          indices: requestDisplay.indices,
+                        };
+                        onChange?.(updatedRequestDisplay);
                       }} />
                     </FormField>
                   </SpaceBetween>
@@ -196,7 +229,11 @@ export default function RequestContainer({
                       ...request,
                       headers: updatedHeaders,
                     };
-                    onChange?.(updatedRequest);
+                    const updatedRequestDisplay = {
+                      request: updatedRequest,
+                      indices: requestDisplay.indices,
+                    };
+                    onChange?.(updatedRequestDisplay);
                   }} />
               )
             },
@@ -210,7 +247,11 @@ export default function RequestContainer({
                       ...request,
                       body: detail.value,
                     };
-                    onChange?.(updatedRequest);
+                    const updatedRequestDisplay = {
+                      request: updatedRequest,
+                      indices: requestDisplay.indices,
+                    };
+                    onChange?.(updatedRequestDisplay);
                   }}
                   value={body}
                   placeholder="Body"
