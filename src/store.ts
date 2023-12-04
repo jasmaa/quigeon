@@ -60,6 +60,10 @@ class Store {
 
   async deleteCollection(id: string): Promise<void> {
     await this.db?.execute(
+      `DELETE FROM requests WHERE collectionId=$1`,
+      [id],
+    );
+    await this.db?.execute(
       `DELETE FROM collections WHERE id=$1`,
       [id],
     );
