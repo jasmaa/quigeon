@@ -14,7 +14,6 @@ use std::{
 use aws_sigv4::http_request::{sign, SignableRequest, SigningParams, SigningSettings};
 use http::{self, HeaderName, HeaderValue};
 use sha2::{Digest, Sha256};
-use tauri::{CustomMenuItem, Menu, Submenu};
 
 #[derive(serde::Deserialize, Clone)]
 struct RequestHeader {
@@ -165,37 +164,7 @@ fn save_file_cmd(file_path: String, blob: String) -> Result<(), String> {
 }
 
 fn main() {
-    let new_item = CustomMenuItem::new("new".to_string(), "New");
-    let open_item = CustomMenuItem::new("open".to_string(), "Open...");
-    let save_item = CustomMenuItem::new("save".to_string(), "Save");
-    let save_as_item = CustomMenuItem::new("save-as".to_string(), "Save as...");
-    let file_menu = Submenu::new(
-        "File",
-        Menu::new()
-            .add_item(new_item)
-            .add_item(open_item)
-            .add_item(save_item)
-            .add_item(save_as_item),
-    );
-    let menu = Menu::new().add_submenu(file_menu);
-
     tauri::Builder::default()
-        .menu(menu)
-        .on_menu_event(|event| match event.menu_item_id() {
-            "new" => {
-                event.window().emit("new", ()).unwrap();
-            }
-            "open" => {
-                event.window().emit("open", ()).unwrap();
-            }
-            "save" => {
-                event.window().emit("save", ()).unwrap();
-            }
-            "save-as" => {
-                event.window().emit("save-as", ()).unwrap();
-            }
-            _ => {}
-        })
         .invoke_handler(tauri::generate_handler![
             send_sigv4_cmd,
             open_file_cmd,

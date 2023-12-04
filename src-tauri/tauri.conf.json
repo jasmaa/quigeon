@@ -13,15 +13,7 @@
   "tauri": {
     "allowlist": {
       "dialog": {
-        "all": true
-      },
-      "fs": {
-        "all": true,
-        "scope": [
-          "$APPDATA/collections/**",
-          "$APPDATA/collections",
-          "$APPDATA"
-        ]
+        "confirm": true
       }
     },
     "bundle": {
