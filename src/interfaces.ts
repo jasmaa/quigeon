@@ -5,6 +5,7 @@ export interface CollectionDisplay {
 
 export interface RequestDisplay {
   request: Request
+  collection?: Collection
   indices?: {
     collectionDisplayIdx: number
     requestIdx: number

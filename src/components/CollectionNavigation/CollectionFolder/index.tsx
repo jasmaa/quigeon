@@ -108,6 +108,7 @@ export default function CollectionFolder({
                 <Button key={request.id} variant="link" iconName="file" onClick={() => {
                   setRequestDisplay({
                     request: collectionDisplays[collectionDisplayIdx].requests[requestIdx],
+                    collection: collectionDisplays[collectionDisplayIdx].collection,
                     indices: {
                       collectionDisplayIdx,
                       requestIdx,

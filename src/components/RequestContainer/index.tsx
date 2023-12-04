@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, FormField, ColumnLayout } from "@cloudscape-design/components";
+import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, TextContent, FormField, ColumnLayout } from "@cloudscape-design/components";
 import RequestHeaderEditor from "@awspostman/components/RequestHeaderEditor";
 import { RequestDisplay, Request } from "@awspostman/interfaces";
 import { validateRequestName } from "@awspostman/validators";
@@ -35,44 +35,53 @@ export default function RequestContainer({
 
   return (
     <Container header={
-      isEditingName
-        ? (
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            const isValid = validateRequestName(pendingName);
-            setIsPendingNameValid(isValid);
-            if (isValid) {
-              const updatedRequest = {
-                ...request,
-                name: pendingName,
-              };
-              const updatedRequestDisplay = {
-                request: updatedRequest,
-                indices: requestDisplay.indices,
-              };
-              onChange?.(updatedRequestDisplay);
-              setIsEditingName(!isEditingName);
-            }
-          }}>
-            <SpaceBetween size="m" direction="horizontal">
-              <Input value={pendingName} invalid={!isPendingNameValid} autoFocus onChange={({ detail }) => {
-                setPendingName(detail.value);
-              }} />
-              <Button iconName="check" variant="icon" />
-            </SpaceBetween>
-          </form>
-        )
-        : (
-          <SpaceBetween size="m" direction="horizontal">
-            <Header variant="h2">{name}</Header>
-            <Button iconName="edit" variant="icon" onClick={
-              () => {
-                setPendingName(name);
-                setIsEditingName(!isEditingName);
-              }
-            } />
-          </SpaceBetween>
-        )
+      <SpaceBetween size="xxxs" direction="vertical">
+        {requestDisplay.collection && (
+          <TextContent>
+            <h5>{requestDisplay.collection.name}</h5>
+          </TextContent>
+        )}
+        {
+          isEditingName
+            ? (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const isValid = validateRequestName(pendingName);
+                setIsPendingNameValid(isValid);
+                if (isValid) {
+                  const updatedRequest = {
+                    ...request,
+                    name: pendingName,
+                  };
+                  const updatedRequestDisplay = {
+                    ...requestDisplay,
+                    request: updatedRequest,
+                  };
+                  onChange?.(updatedRequestDisplay);
+                  setIsEditingName(!isEditingName);
+                }
+              }}>
+                <SpaceBetween size="m" direction="horizontal">
+                  <Input value={pendingName} invalid={!isPendingNameValid} autoFocus onChange={({ detail }) => {
+                    setPendingName(detail.value);
+                  }} />
+                  <Button iconName="check" variant="icon" />
+                </SpaceBetween>
+              </form>
+            )
+            : (
+              <SpaceBetween size="m" direction="horizontal">
+                <Header variant="h2">{name}</Header>
+                <Button iconName="edit" variant="icon" onClick={
+                  () => {
+                    setPendingName(name);
+                    setIsEditingName(!isEditingName);
+                  }
+                } />
+              </SpaceBetween>
+            )
+        }
+      </SpaceBetween>
     }>
       <form onSubmit={(e) => {
         e.preventDefault();
@@ -101,8 +110,8 @@ export default function RequestContainer({
                 method: detail.selectedOption.value!,
               };
               const updatedRequestDisplay = {
+                ...requestDisplay,
                 request: updatedRequest,
-                indices: requestDisplay.indices,
               };
               onChange?.(updatedRequestDisplay);
             }
@@ -126,8 +135,8 @@ export default function RequestContainer({
               url: detail.value,
             };
             const updatedRequestDisplay = {
+              ...requestDisplay,
               request: updatedRequest,
-              indices: requestDisplay.indices,
             };
             onChange?.(updatedRequestDisplay);
           }} />
@@ -149,8 +158,8 @@ export default function RequestContainer({
                           accessKey: detail.value,
                         };
                         const updatedRequestDisplay = {
+                          ...requestDisplay,
                           request: updatedRequest,
-                          indices: requestDisplay.indices,
                         };
                         onChange?.(updatedRequestDisplay);
                       }} />
@@ -163,8 +172,8 @@ export default function RequestContainer({
                           secretKey: detail.value,
                         };
                         const updatedRequestDisplay = {
+                          ...requestDisplay,
                           request: updatedRequest,
-                          indices: requestDisplay.indices,
                         };
                         onChange?.(updatedRequestDisplay);
 
@@ -180,8 +189,8 @@ export default function RequestContainer({
                           region: detail.value,
                         };
                         const updatedRequestDisplay = {
+                          ...requestDisplay,
                           request: updatedRequest,
-                          indices: requestDisplay.indices,
                         };
                         onChange?.(updatedRequestDisplay);
                       }} />
@@ -194,8 +203,8 @@ export default function RequestContainer({
                           service: detail.value,
                         };
                         const updatedRequestDisplay = {
+                          ...requestDisplay,
                           request: updatedRequest,
-                          indices: requestDisplay.indices,
                         };
                         onChange?.(updatedRequestDisplay);
                       }} />
@@ -208,8 +217,8 @@ export default function RequestContainer({
                           sessionToken: detail.value,
                         };
                         const updatedRequestDisplay = {
+                          ...requestDisplay,
                           request: updatedRequest,
-                          indices: requestDisplay.indices,
                         };
                         onChange?.(updatedRequestDisplay);
                       }} />
@@ -230,8 +239,8 @@ export default function RequestContainer({
                       headers: updatedHeaders,
                     };
                     const updatedRequestDisplay = {
+                      ...requestDisplay,
                       request: updatedRequest,
-                      indices: requestDisplay.indices,
                     };
                     onChange?.(updatedRequestDisplay);
                   }} />
@@ -248,8 +257,8 @@ export default function RequestContainer({
                       body: detail.value,
                     };
                     const updatedRequestDisplay = {
+                      ...requestDisplay,
                       request: updatedRequest,
-                      indices: requestDisplay.indices,
                     };
                     onChange?.(updatedRequestDisplay);
                   }}
@@ -262,6 +271,6 @@ export default function RequestContainer({
           ]}
         />
       </form>
-    </Container >
+    </Container>
   );
 }
