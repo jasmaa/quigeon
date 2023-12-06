@@ -2,32 +2,18 @@ import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Box, SpaceBetween, Grid } from "@cloudscape-design/components";
 import { Request, ResponsePayload, CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
-import { getOrCreateStore, generateId } from "@awspostman/store";
+import { getOrCreateStore } from "@awspostman/store";
 import CollectionNavigation from "@awspostman/components/CollectionNavigation";
 import RequestContainer from "@awspostman/components/RequestContainer";
 import ResponseContainer from "@awspostman/components/ResponseContainer";
+import { getDefaultRequestDisplay } from "@awspostman/generators";
 
 // Request id for matching current request when multiple requests are in flight
 let pendingRequestId: string | null = null;
 
 export default function Home() {
   const [collectionDisplays, setCollectionDisplays] = useState<CollectionDisplay[]>([]);
-  const [requestDisplay, setRequestDisplay] = useState<RequestDisplay>({
-    request: {
-      id: generateId(),
-      name: "My Request",
-      collectionId: "",
-      accessKey: "",
-      secretKey: "",
-      sessionToken: "",
-      region: "",
-      service: "",
-      method: "GET",
-      url: "",
-      body: "",
-      headers: [],
-    }
-  });
+  const [requestDisplay, setRequestDisplay] = useState<RequestDisplay>(getDefaultRequestDisplay());
   const [isSendingRequest, setIsSendingRequest] = useState(false);
   const [response, setResponse] = useState<ResponsePayload>();
   const [responseErrorText, setResponseErrorText] = useState("");
@@ -95,51 +81,22 @@ export default function Home() {
     setResponseErrorText("Request cancelled");
   }
 
-  const onCollectionDisplaysChange = (updatedCollectionDisplays: CollectionDisplay[]) => {
-    setCollectionDisplays(updatedCollectionDisplays);
-
-    if (requestDisplay.indices) {
-      const updatedRequestDisplay = structuredClone(requestDisplay);
-      updatedRequestDisplay.request = structuredClone(updatedCollectionDisplays[requestDisplay.indices.collectionDisplayIdx].requests[requestDisplay.indices.requestIdx]);
-      setRequestDisplay(updatedRequestDisplay);
-    }
-  }
-
-  const onRequestDisplayChange = async (updatedRequestDisplay: RequestDisplay) => {
-    setRequestDisplay(updatedRequestDisplay);
-
-    if (updatedRequestDisplay.indices) {
-      const updatedCollectionDisplays = structuredClone(collectionDisplays);
-      updatedCollectionDisplays[updatedRequestDisplay.indices.collectionDisplayIdx].requests[updatedRequestDisplay.indices.requestIdx] = structuredClone(updatedRequestDisplay.request);
-      setCollectionDisplays(updatedCollectionDisplays);
-    }
-  };
-
-  const onOpenRequest = (collectionDisplayIdx: number, requestIdx: number) => {
-    const requestDisplay = {
-      request: structuredClone(collectionDisplays[collectionDisplayIdx].requests[requestIdx]),
-      collection: structuredClone(collectionDisplays[collectionDisplayIdx].collection),
-      indices: {
-        collectionDisplayIdx,
-        requestIdx,
-      }
-    }
-    setRequestDisplay(requestDisplay);
-  }
-
   return (
     <Box margin="s">
       <Grid gridDefinition={[{ colspan: 3 }, { colspan: 9 }]}>
         <CollectionNavigation
           collectionDisplays={collectionDisplays}
-          onChange={onCollectionDisplaysChange}
-          onOpenRequest={onOpenRequest}
+          setCollectionDisplays={setCollectionDisplays}
+          requestDisplay={requestDisplay}
+          setRequestDisplay={setRequestDisplay}
         />
         <SpaceBetween size="l" direction="vertical">
           <RequestContainer
+            collectionDisplays={collectionDisplays}
+            setCollectionDisplays={setCollectionDisplays}
             requestDisplay={requestDisplay}
+            setRequestDisplay={setRequestDisplay}
             onSend={onSendRequest}
-            onChange={onRequestDisplayChange}
           />
           <ResponseContainer
             response={response}

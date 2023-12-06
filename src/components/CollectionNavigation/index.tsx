@@ -1,19 +1,21 @@
 import React from "react";
 import { Button, Header, Container, SpaceBetween, } from "@cloudscape-design/components";
 import { CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
-import { generateId, getOrCreateStore } from "@awspostman/store";
+import { getOrCreateStore } from "@awspostman/store";
+import { getDefaultCollectionDisplay } from "@awspostman/generators";
 import CollectionFolder from "./CollectionFolder";
 
 export default function CollectionNavigation({
   collectionDisplays,
-  onChange,
-  onOpenRequest,
+  setCollectionDisplays,
+  requestDisplay,
+  setRequestDisplay,
 }: {
   collectionDisplays: CollectionDisplay[];
-  onChange?: (updatedCollectionDisplays: CollectionDisplay[]) => void
-  onOpenRequest?: (collectionDisplayIdx: number, requestIdx: number) => void
+  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
+  requestDisplay: RequestDisplay;
+  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
 }) {
-
   return (
     <Container header={
       <Header>
@@ -24,26 +26,18 @@ export default function CollectionNavigation({
         {collectionDisplays.map((collectionDisplay, collectionDisplayIdx) => (
           <CollectionFolder
             key={collectionDisplay.collection.id}
-            collectionDisplays={collectionDisplays}
             collectionDisplayIdx={collectionDisplayIdx}
-            onChange={onChange}
-            onOpenRequest={onOpenRequest}
+            collectionDisplays={collectionDisplays}
+            setCollectionDisplays={setCollectionDisplays}
+            requestDisplay={requestDisplay}
+            setRequestDisplay={setRequestDisplay}
           />
         ))}
         <Button iconName="add-plus" onClick={async () => {
-          const addedCollectionDisplay = {
-            collection: {
-              id: generateId(),
-              name: "My Collection",
-              isOpen: false,
-              isEditing: false,
-              requests: [],
-            },
-            requests: [],
-          };
+          const addedCollectionDisplay = getDefaultCollectionDisplay();
 
           const updatedCollectionDisplays = [...collectionDisplays, addedCollectionDisplay];
-          onChange?.(updatedCollectionDisplays);
+          setCollectionDisplays(updatedCollectionDisplays);
 
           const store = await getOrCreateStore();
           await store.upsertCollection(addedCollectionDisplay.collection);

@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { Box, Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { validateCollectionName } from "@awspostman/validators";
-import { generateId, getOrCreateStore } from "@awspostman/store";
+import { getOrCreateStore } from "@awspostman/store";
 import { CollectionDisplay, RequestDisplay, Request } from "@awspostman/interfaces";
+import { getDefaultRequest, getDefaultRequestDisplay } from "@awspostman/generators";
 import RequestFile from "./RequestFile";
 
 export default function CollectionFolder({
-  collectionDisplays,
   collectionDisplayIdx,
-  onChange,
-  onOpenRequest,
+  collectionDisplays,
+  setCollectionDisplays,
+  requestDisplay,
+  setRequestDisplay,
 }: {
-  collectionDisplays: CollectionDisplay[];
   collectionDisplayIdx: number;
-  onChange?: (updatedCollectionDisplays: CollectionDisplay[]) => void;
-  onOpenRequest?: (collectionDisplayIdx: number, requestIdx: number) => void;
+  collectionDisplays: CollectionDisplay[];
+  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
+  requestDisplay: RequestDisplay;
+  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
 }) {
   const { collection, requests } = collectionDisplays[collectionDisplayIdx];
 
@@ -24,25 +27,12 @@ export default function CollectionFolder({
   const [isPendingNameValid, setIsPendingNameValid] = useState(true);
 
   const onAddRequest = async () => {
-    const addedRequest: Request = {
-      id: generateId(),
-      name: "My Request",
-      collectionId: collection.id,
-      accessKey: "",
-      secretKey: "",
-      sessionToken: "",
-      region: "",
-      service: "",
-      method: "GET",
-      url: "",
-      body: "",
-      headers: [],
-    };
+    const addedRequest: Request = getDefaultRequest();
 
     const updatedCollectionDisplays = [...collectionDisplays];
     const updatedRequests = [...updatedCollectionDisplays[collectionDisplayIdx].requests, addedRequest];
     updatedCollectionDisplays[collectionDisplayIdx].requests = updatedRequests;
-    onChange?.(updatedCollectionDisplays);
+    setCollectionDisplays(updatedCollectionDisplays);
 
     const store = await getOrCreateStore();
     await store.upsertRequest(addedRequest);
@@ -61,7 +51,13 @@ export default function CollectionFolder({
                 if (isValid) {
                   const updatedCollectionDisplays = structuredClone(collectionDisplays);
                   updatedCollectionDisplays[collectionDisplayIdx].collection.name = pendingName;
-                  onChange?.(updatedCollectionDisplays);
+                  setCollectionDisplays(updatedCollectionDisplays);
+
+                  if (requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx) {
+                    const updatedRequestDisplay = structuredClone(requestDisplay);
+                    updatedRequestDisplay.collection = updatedCollectionDisplays[collectionDisplayIdx].collection;
+                    setRequestDisplay(updatedRequestDisplay);
+                  }
 
                   const store = await getOrCreateStore();
                   await store.upsertCollection(updatedCollectionDisplays[collectionDisplayIdx].collection);
@@ -94,7 +90,12 @@ export default function CollectionFolder({
           if (isConfirmed) {
             const updatedCollectionDisplays = [...collectionDisplays];
             updatedCollectionDisplays.splice(collectionDisplayIdx, 1);
-            onChange?.(updatedCollectionDisplays);
+            setCollectionDisplays(updatedCollectionDisplays);
+
+            if (requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx) {
+              const updatedRequestDisplay = getDefaultRequestDisplay();
+              setRequestDisplay(updatedRequestDisplay);
+            }
 
             const store = await getOrCreateStore();
             await store.deleteCollection(collectionDisplays[collectionDisplayIdx].collection.id);
@@ -108,11 +109,12 @@ export default function CollectionFolder({
               {requests.map((request, requestIdx) => (
                 <RequestFile
                   key={request.id}
-                  collectionDisplays={collectionDisplays}
-                  onChange={onChange}
                   collectionDisplayIdx={collectionDisplayIdx}
                   requestIdx={requestIdx}
-                  onOpenRequest={onOpenRequest}
+                  collectionDisplays={collectionDisplays}
+                  setCollectionDisplays={setCollectionDisplays}
+                  requestDisplay={requestDisplay}
+                  setRequestDisplay={setRequestDisplay}
                 />
               ))}
               <Button iconName="add-plus" onClick={onAddRequest}>Add</Button>

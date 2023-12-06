@@ -1,20 +1,24 @@
 import React, { useState } from "react";
 import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, TextContent, FormField, ColumnLayout } from "@cloudscape-design/components";
 import RequestHeaderEditor from "@awspostman/components/RequestHeaderEditor";
-import { RequestDisplay, Request } from "@awspostman/interfaces";
+import { RequestDisplay, Request, CollectionDisplay } from "@awspostman/interfaces";
 import { validateRequestName } from "@awspostman/validators";
 import { getOrCreateStore } from "@awspostman/store";
 
 export default function RequestContainer({
+  collectionDisplays,
+  setCollectionDisplays,
   requestDisplay,
+  setRequestDisplay,
   loading = false,
-  onChange,
   onSend,
 }: {
-  requestDisplay: RequestDisplay,
-  loading?: boolean,
-  onChange?: (requestDisplay: RequestDisplay) => void,
-  onSend?: (request: Request) => void,
+  collectionDisplays: CollectionDisplay[]
+  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void
+  requestDisplay: RequestDisplay
+  setRequestDisplay: (requestDisplay: RequestDisplay) => void
+  loading?: boolean
+  onSend?: (request: Request) => void
 }) {
   const { request } = requestDisplay;
   const {
@@ -35,10 +39,16 @@ export default function RequestContainer({
   const [isPendingNameValid, setIsPendingNameValid] = useState(true);
 
   const onChangeRequestDisplay = async (updatedRequestDisplay: RequestDisplay) => {
-    onChange?.(updatedRequestDisplay);
+    setRequestDisplay(updatedRequestDisplay);
 
-    const store = await getOrCreateStore();
-    await store.upsertRequest(updatedRequestDisplay.request);
+    if (updatedRequestDisplay.indices) {
+      const updatedCollectionDisplays = structuredClone(collectionDisplays);
+      updatedCollectionDisplays[updatedRequestDisplay.indices.collectionDisplayIdx].requests[updatedRequestDisplay.indices.requestIdx] = structuredClone(updatedRequestDisplay.request);
+      setCollectionDisplays(updatedCollectionDisplays);
+
+      const store = await getOrCreateStore();
+      await store.upsertRequest(updatedRequestDisplay.request);
+    }
   }
 
   return (
@@ -57,14 +67,8 @@ export default function RequestContainer({
                 const isValid = validateRequestName(pendingName);
                 setIsPendingNameValid(isValid);
                 if (isValid) {
-                  const updatedRequest = {
-                    ...request,
-                    name: pendingName,
-                  };
-                  const updatedRequestDisplay = {
-                    ...requestDisplay,
-                    request: updatedRequest,
-                  };
+                  const updatedRequestDisplay = structuredClone(requestDisplay);
+                  updatedRequestDisplay.request.name = pendingName;
                   onChangeRequestDisplay(updatedRequestDisplay);
                   setIsEditingName(!isEditingName);
                 }
@@ -113,14 +117,8 @@ export default function RequestContainer({
           <Select
             selectedOption={{ label: method, value: method }}
             onChange={({ detail }) => {
-              const updatedRequest = {
-                ...request,
-                method: detail.selectedOption.value!,
-              };
-              const updatedRequestDisplay = {
-                ...requestDisplay,
-                request: updatedRequest,
-              };
+              const updatedRequestDisplay = structuredClone(requestDisplay);
+              updatedRequestDisplay.request.method = detail.selectedOption.value!;
               onChangeRequestDisplay(updatedRequestDisplay);
             }
             }
@@ -138,14 +136,8 @@ export default function RequestContainer({
             selectedAriaLabel="Selected"
           />
           <Input value={url} placeholder="URL" onChange={({ detail }) => {
-            const updatedRequest = {
-              ...request,
-              url: detail.value,
-            };
-            const updatedRequestDisplay = {
-              ...requestDisplay,
-              request: updatedRequest,
-            };
+            const updatedRequestDisplay = structuredClone(requestDisplay);
+            updatedRequestDisplay.request.url = detail.value;
             onChangeRequestDisplay(updatedRequestDisplay);
           }} />
           <Button loading={loading}>Send</Button>
@@ -161,28 +153,16 @@ export default function RequestContainer({
                     <FormField
                       label="Access Key">
                       <Input value={accessKey} placeholder="Access key" onChange={({ detail }) => {
-                        const updatedRequest = {
-                          ...request,
-                          accessKey: detail.value,
-                        };
-                        const updatedRequestDisplay = {
-                          ...requestDisplay,
-                          request: updatedRequest,
-                        };
-                        onChange?.(updatedRequestDisplay);
+                        const updatedRequestDisplay = structuredClone(requestDisplay);
+                        updatedRequestDisplay.request.accessKey = detail.value;
+                        onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
                     <FormField
                       label="Secret Key">
                       <Input value={secretKey} placeholder="Secret key" onChange={({ detail }) => {
-                        const updatedRequest = {
-                          ...request,
-                          secretKey: detail.value,
-                        };
-                        const updatedRequestDisplay = {
-                          ...requestDisplay,
-                          request: updatedRequest,
-                        };
+                        const updatedRequestDisplay = structuredClone(requestDisplay);
+                        updatedRequestDisplay.request.secretKey = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
@@ -191,42 +171,24 @@ export default function RequestContainer({
                     <FormField
                       label="Region">
                       <Input value={region} placeholder="Region" onChange={({ detail }) => {
-                        const updatedRequest = {
-                          ...request,
-                          region: detail.value,
-                        };
-                        const updatedRequestDisplay = {
-                          ...requestDisplay,
-                          request: updatedRequest,
-                        };
+                        const updatedRequestDisplay = structuredClone(requestDisplay);
+                        updatedRequestDisplay.request.region = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
                     <FormField
                       label="Service">
                       <Input value={service} placeholder="Service" onChange={({ detail }) => {
-                        const updatedRequest = {
-                          ...request,
-                          service: detail.value,
-                        };
-                        const updatedRequestDisplay = {
-                          ...requestDisplay,
-                          request: updatedRequest,
-                        };
+                        const updatedRequestDisplay = structuredClone(requestDisplay);
+                        updatedRequestDisplay.request.service = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
                     <FormField
                       label="Session Token (optional)">
                       <Input value={sessionToken} placeholder="Session token" onChange={({ detail }) => {
-                        const updatedRequest = {
-                          ...request,
-                          sessionToken: detail.value,
-                        };
-                        const updatedRequestDisplay = {
-                          ...requestDisplay,
-                          request: updatedRequest,
-                        };
+                        const updatedRequestDisplay = structuredClone(requestDisplay);
+                        updatedRequestDisplay.request.sessionToken = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
@@ -241,14 +203,8 @@ export default function RequestContainer({
                 <RequestHeaderEditor
                   headers={headers}
                   onChange={(updatedHeaders) => {
-                    const updatedRequest = {
-                      ...request,
-                      headers: updatedHeaders,
-                    };
-                    const updatedRequestDisplay = {
-                      ...requestDisplay,
-                      request: updatedRequest,
-                    };
+                    const updatedRequestDisplay = structuredClone(requestDisplay);
+                    updatedRequestDisplay.request.headers = updatedHeaders;
                     onChangeRequestDisplay(updatedRequestDisplay);
                   }} />
               )
@@ -259,15 +215,9 @@ export default function RequestContainer({
               content: (
                 <Textarea
                   onChange={({ detail }) => {
-                    const updatedRequest = {
-                      ...request,
-                      body: detail.value,
-                    };
-                    const updatedRequestDisplay = {
-                      ...requestDisplay,
-                      request: updatedRequest,
-                    };
-                    onChange?.(updatedRequestDisplay);
+                    const updatedRequestDisplay = structuredClone(requestDisplay);
+                    updatedRequestDisplay.request.body = detail.value;
+                    onChangeRequestDisplay(updatedRequestDisplay);
                   }}
                   value={body}
                   placeholder="Body"

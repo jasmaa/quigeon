@@ -1,21 +1,23 @@
-import { CollectionDisplay, Request, RequestDisplay } from "@awspostman/interfaces";
+import { CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
 import { getOrCreateStore } from "@awspostman/store";
 import { validateRequestName } from "@awspostman/validators";
 import { Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { useState } from "react";
 
 export default function RequestFile({
-  collectionDisplays,
   collectionDisplayIdx,
   requestIdx,
-  onChange,
-  onOpenRequest,
+  collectionDisplays,
+  setCollectionDisplays,
+  requestDisplay,
+  setRequestDisplay,
 }: {
-  collectionDisplays: CollectionDisplay[];
   collectionDisplayIdx: number;
   requestIdx: number;
-  onChange?: (updatedCollectionDisplays: CollectionDisplay[]) => void;
-  onOpenRequest?: (collectionDisplayIdx: number, requestIdx: number) => void;
+  collectionDisplays: CollectionDisplay[];
+  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
+  requestDisplay: RequestDisplay;
+  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
 }) {
   const request = collectionDisplays[collectionDisplayIdx].requests[requestIdx];
 
@@ -35,7 +37,13 @@ export default function RequestFile({
               if (isValid) {
                 const updatedCollectionDisplays = structuredClone(collectionDisplays);
                 updatedCollectionDisplays[collectionDisplayIdx].requests[requestIdx].name = pendingName;
-                onChange?.(updatedCollectionDisplays);
+                setCollectionDisplays(updatedCollectionDisplays);
+
+                if (requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx && requestDisplay.indices.requestIdx === requestIdx) {
+                  const updatedRequestDisplay = structuredClone(requestDisplay);
+                  updatedRequestDisplay.request.name = pendingName;
+                  setRequestDisplay(updatedRequestDisplay);
+                }
 
                 const store = await getOrCreateStore();
                 await store.upsertRequest(updatedCollectionDisplays[collectionDisplayIdx].requests[requestIdx]);
@@ -54,7 +62,15 @@ export default function RequestFile({
           : (
             <SpaceBetween direction="horizontal" size="xxxs">
               <Button variant="link" iconName="file" onClick={() => {
-                onOpenRequest?.(collectionDisplayIdx, requestIdx);
+                const requestDisplay = {
+                  request: structuredClone(collectionDisplays[collectionDisplayIdx].requests[requestIdx]),
+                  collection: structuredClone(collectionDisplays[collectionDisplayIdx].collection),
+                  indices: {
+                    collectionDisplayIdx,
+                    requestIdx,
+                  }
+                };
+                setRequestDisplay(requestDisplay);
               }}>{request.method} {request.name}</Button>
               <Button iconName="edit" variant="icon" onClick={() => {
                 setPendingName(request.name);
