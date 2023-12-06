@@ -2,18 +2,19 @@ import { useState } from "react";
 import { Box, Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { validateCollectionName } from "@awspostman/validators";
 import { generateId, getOrCreateStore } from "@awspostman/store";
-import { CollectionDisplay, Collection, RequestDisplay, Request } from "@awspostman/interfaces";
+import { CollectionDisplay, RequestDisplay, Request } from "@awspostman/interfaces";
+import RequestFile from "./RequestFile";
 
 export default function CollectionFolder({
   collectionDisplays,
-  setCollectionDisplays,
   collectionDisplayIdx,
-  setRequestDisplay,
+  onChange,
+  onOpenRequest,
 }: {
   collectionDisplays: CollectionDisplay[];
-  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
   collectionDisplayIdx: number;
-  setRequestDisplay: (setRequestDisplay: RequestDisplay) => void;
+  onChange?: (updatedCollectionDisplays: CollectionDisplay[]) => void;
+  onOpenRequest?: (collectionDisplayIdx: number, requestIdx: number) => void;
 }) {
   const { collection, requests } = collectionDisplays[collectionDisplayIdx];
 
@@ -41,7 +42,7 @@ export default function CollectionFolder({
     const updatedCollectionDisplays = [...collectionDisplays];
     const updatedRequests = [...updatedCollectionDisplays[collectionDisplayIdx].requests, addedRequest];
     updatedCollectionDisplays[collectionDisplayIdx].requests = updatedRequests;
-    setCollectionDisplays(updatedCollectionDisplays);
+    onChange?.(updatedCollectionDisplays);
 
     const store = await getOrCreateStore();
     await store.upsertRequest(addedRequest);
@@ -49,7 +50,6 @@ export default function CollectionFolder({
 
   return (
     <SpaceBetween direction="vertical" size="xxxs">
-
       <SpaceBetween direction="horizontal" size="xxxs">
         {
           isEditingName
@@ -59,9 +59,9 @@ export default function CollectionFolder({
                 const isValid = validateCollectionName(pendingName);
                 setIsPendingNameValid(isValid);
                 if (isValid) {
-                  const updatedCollectionDisplays = [...collectionDisplays];
+                  const updatedCollectionDisplays = structuredClone(collectionDisplays);
                   updatedCollectionDisplays[collectionDisplayIdx].collection.name = pendingName;
-                  setCollectionDisplays(updatedCollectionDisplays);
+                  onChange?.(updatedCollectionDisplays);
 
                   const store = await getOrCreateStore();
                   await store.upsertCollection(updatedCollectionDisplays[collectionDisplayIdx].collection);
@@ -83,6 +83,7 @@ export default function CollectionFolder({
                   setIsOpen(!isOpen);
                 }}>{collection.name}</Button>
                 <Button iconName="edit" variant="icon" onClick={() => {
+                  setPendingName(collection.name);
                   setIsEditingName(true);
                 }} />
               </SpaceBetween>
@@ -93,7 +94,7 @@ export default function CollectionFolder({
           if (isConfirmed) {
             const updatedCollectionDisplays = [...collectionDisplays];
             updatedCollectionDisplays.splice(collectionDisplayIdx, 1);
-            setCollectionDisplays?.(updatedCollectionDisplays);
+            onChange?.(updatedCollectionDisplays);
 
             const store = await getOrCreateStore();
             await store.deleteCollection(collectionDisplays[collectionDisplayIdx].collection.id);
@@ -105,16 +106,14 @@ export default function CollectionFolder({
           <Box margin={{ left: "l" }}>
             <SpaceBetween direction="vertical" size="xxxs">
               {requests.map((request, requestIdx) => (
-                <Button key={request.id} variant="link" iconName="file" onClick={() => {
-                  setRequestDisplay({
-                    request: collectionDisplays[collectionDisplayIdx].requests[requestIdx],
-                    collection: collectionDisplays[collectionDisplayIdx].collection,
-                    indices: {
-                      collectionDisplayIdx,
-                      requestIdx,
-                    }
-                  });
-                }}>{request.method} {request.name}</Button>
+                <RequestFile
+                  key={request.id}
+                  collectionDisplays={collectionDisplays}
+                  onChange={onChange}
+                  collectionDisplayIdx={collectionDisplayIdx}
+                  requestIdx={requestIdx}
+                  onOpenRequest={onOpenRequest}
+                />
               ))}
               <Button iconName="add-plus" onClick={onAddRequest}>Add</Button>
             </SpaceBetween>

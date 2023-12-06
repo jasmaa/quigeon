@@ -89,44 +89,63 @@ export default function Home() {
     })();
   }
 
-  const onRequestChange = async (updatedRequestDisplay: RequestDisplay) => {
+  const onCancelSend = () => {
+    pendingRequestId = null;
+    setIsSendingRequest(false);
+    setResponseErrorText("Request cancelled");
+  }
+
+  const onCollectionDisplaysChange = (updatedCollectionDisplays: CollectionDisplay[]) => {
+    setCollectionDisplays(updatedCollectionDisplays);
+
+    if (requestDisplay.indices) {
+      const updatedRequestDisplay = structuredClone(requestDisplay);
+      updatedRequestDisplay.request = structuredClone(updatedCollectionDisplays[requestDisplay.indices.collectionDisplayIdx].requests[requestDisplay.indices.requestIdx]);
+      setRequestDisplay(updatedRequestDisplay);
+    }
+  }
+
+  const onRequestDisplayChange = async (updatedRequestDisplay: RequestDisplay) => {
     setRequestDisplay(updatedRequestDisplay);
 
     if (updatedRequestDisplay.indices) {
-      const updatedCollectionDisplays = [...collectionDisplays];
-      const updatedRequests = [...collectionDisplays[updatedRequestDisplay.indices.collectionDisplayIdx].requests];
-      updatedRequests[updatedRequestDisplay.indices.requestIdx] = updatedRequestDisplay.request;
-      updatedCollectionDisplays[updatedRequestDisplay.indices.collectionDisplayIdx].requests = updatedRequests;
+      const updatedCollectionDisplays = structuredClone(collectionDisplays);
+      updatedCollectionDisplays[updatedRequestDisplay.indices.collectionDisplayIdx].requests[updatedRequestDisplay.indices.requestIdx] = structuredClone(updatedRequestDisplay.request);
       setCollectionDisplays(updatedCollectionDisplays);
     }
-
-    const store = await getOrCreateStore();
-    await store.upsertRequest(updatedRequestDisplay.request);
   };
+
+  const onOpenRequest = (collectionDisplayIdx: number, requestIdx: number) => {
+    const requestDisplay = {
+      request: structuredClone(collectionDisplays[collectionDisplayIdx].requests[requestIdx]),
+      collection: structuredClone(collectionDisplays[collectionDisplayIdx].collection),
+      indices: {
+        collectionDisplayIdx,
+        requestIdx,
+      }
+    }
+    setRequestDisplay(requestDisplay);
+  }
 
   return (
     <Box margin="s">
       <Grid gridDefinition={[{ colspan: 3 }, { colspan: 9 }]}>
         <CollectionNavigation
           collectionDisplays={collectionDisplays}
-          setCollectionDisplays={setCollectionDisplays}
-          setRequestDisplay={setRequestDisplay}
+          onChange={onCollectionDisplaysChange}
+          onOpenRequest={onOpenRequest}
         />
         <SpaceBetween size="l" direction="vertical">
           <RequestContainer
             requestDisplay={requestDisplay}
             onSend={onSendRequest}
-            onChange={onRequestChange}
+            onChange={onRequestDisplayChange}
           />
           <ResponseContainer
             response={response}
             loading={isSendingRequest}
             errorText={responseErrorText}
-            onCancel={() => {
-              pendingRequestId = null;
-              setIsSendingRequest(false);
-              setResponseErrorText("Request cancelled");
-            }}
+            onCancel={onCancelSend}
           />
         </SpaceBetween>
       </Grid>

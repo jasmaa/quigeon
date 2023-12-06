@@ -1,17 +1,17 @@
 import React from "react";
 import { Button, Header, Container, SpaceBetween, } from "@cloudscape-design/components";
-import { CollectionDisplay, Collection, RequestDisplay, Request } from "@awspostman/interfaces";
+import { CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
 import { generateId, getOrCreateStore } from "@awspostman/store";
 import CollectionFolder from "./CollectionFolder";
 
 export default function CollectionNavigation({
   collectionDisplays,
-  setCollectionDisplays,
-  setRequestDisplay,
+  onChange,
+  onOpenRequest,
 }: {
   collectionDisplays: CollectionDisplay[];
-  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
-  setRequestDisplay: (requestIndices: RequestDisplay) => void;
+  onChange?: (updatedCollectionDisplays: CollectionDisplay[]) => void
+  onOpenRequest?: (collectionDisplayIdx: number, requestIdx: number) => void
 }) {
 
   return (
@@ -25,9 +25,9 @@ export default function CollectionNavigation({
           <CollectionFolder
             key={collectionDisplay.collection.id}
             collectionDisplays={collectionDisplays}
-            setCollectionDisplays={setCollectionDisplays}
             collectionDisplayIdx={collectionDisplayIdx}
-            setRequestDisplay={setRequestDisplay}
+            onChange={onChange}
+            onOpenRequest={onOpenRequest}
           />
         ))}
         <Button iconName="add-plus" onClick={async () => {
@@ -43,7 +43,7 @@ export default function CollectionNavigation({
           };
 
           const updatedCollectionDisplays = [...collectionDisplays, addedCollectionDisplay];
-          setCollectionDisplays(updatedCollectionDisplays);
+          onChange?.(updatedCollectionDisplays);
 
           const store = await getOrCreateStore();
           await store.upsertCollection(addedCollectionDisplay.collection);

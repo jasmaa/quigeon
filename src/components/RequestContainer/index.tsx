@@ -3,6 +3,7 @@ import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Tex
 import RequestHeaderEditor from "@awspostman/components/RequestHeaderEditor";
 import { RequestDisplay, Request } from "@awspostman/interfaces";
 import { validateRequestName } from "@awspostman/validators";
+import { getOrCreateStore } from "@awspostman/store";
 
 export default function RequestContainer({
   requestDisplay,
@@ -33,6 +34,13 @@ export default function RequestContainer({
   const [pendingName, setPendingName] = useState(name);
   const [isPendingNameValid, setIsPendingNameValid] = useState(true);
 
+  const onChangeRequestDisplay = async (updatedRequestDisplay: RequestDisplay) => {
+    onChange?.(updatedRequestDisplay);
+
+    const store = await getOrCreateStore();
+    await store.upsertRequest(updatedRequestDisplay.request);
+  }
+
   return (
     <Container header={
       <SpaceBetween size="xxxs" direction="vertical">
@@ -57,7 +65,7 @@ export default function RequestContainer({
                     ...requestDisplay,
                     request: updatedRequest,
                   };
-                  onChange?.(updatedRequestDisplay);
+                  onChangeRequestDisplay(updatedRequestDisplay);
                   setIsEditingName(!isEditingName);
                 }
               }}>
@@ -113,7 +121,7 @@ export default function RequestContainer({
                 ...requestDisplay,
                 request: updatedRequest,
               };
-              onChange?.(updatedRequestDisplay);
+              onChangeRequestDisplay(updatedRequestDisplay);
             }
             }
             options={[
@@ -138,7 +146,7 @@ export default function RequestContainer({
               ...requestDisplay,
               request: updatedRequest,
             };
-            onChange?.(updatedRequestDisplay);
+            onChangeRequestDisplay(updatedRequestDisplay);
           }} />
           <Button loading={loading}>Send</Button>
         </Grid>
@@ -175,8 +183,7 @@ export default function RequestContainer({
                           ...requestDisplay,
                           request: updatedRequest,
                         };
-                        onChange?.(updatedRequestDisplay);
-
+                        onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
                   </SpaceBetween>
@@ -192,7 +199,7 @@ export default function RequestContainer({
                           ...requestDisplay,
                           request: updatedRequest,
                         };
-                        onChange?.(updatedRequestDisplay);
+                        onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
                     <FormField
@@ -206,7 +213,7 @@ export default function RequestContainer({
                           ...requestDisplay,
                           request: updatedRequest,
                         };
-                        onChange?.(updatedRequestDisplay);
+                        onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
                     <FormField
@@ -220,7 +227,7 @@ export default function RequestContainer({
                           ...requestDisplay,
                           request: updatedRequest,
                         };
-                        onChange?.(updatedRequestDisplay);
+                        onChangeRequestDisplay(updatedRequestDisplay);
                       }} />
                     </FormField>
                   </SpaceBetween>
@@ -242,7 +249,7 @@ export default function RequestContainer({
                       ...requestDisplay,
                       request: updatedRequest,
                     };
-                    onChange?.(updatedRequestDisplay);
+                    onChangeRequestDisplay(updatedRequestDisplay);
                   }} />
               )
             },
