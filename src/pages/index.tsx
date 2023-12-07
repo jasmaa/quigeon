@@ -17,6 +17,7 @@ export default function Home() {
   const [isSendingRequest, setIsSendingRequest] = useState(false);
   const [response, setResponse] = useState<ResponsePayload>();
   const [responseErrorText, setResponseErrorText] = useState("");
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -83,12 +84,18 @@ export default function Home() {
 
   return (
     <Box margin="s">
-      <Grid gridDefinition={[{ colspan: 3 }, { colspan: 9 }]}>
+      <Grid gridDefinition={
+        isDrawerOpen
+        ? [{ colspan: 3 }, { colspan: 9 }]
+        : [{ colspan: 1 }, { colspan: 11 }]
+      }>
         <CollectionNavigation
           collectionDisplays={collectionDisplays}
           setCollectionDisplays={setCollectionDisplays}
           requestDisplay={requestDisplay}
           setRequestDisplay={setRequestDisplay}
+          isDrawerOpen={isDrawerOpen}
+          setIsDrawerOpen={setIsDrawerOpen}
         />
         <SpaceBetween size="l" direction="vertical">
           <RequestContainer
