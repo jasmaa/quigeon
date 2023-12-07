@@ -28,10 +28,10 @@ export default function CollectionFolder({
 
   const onAddRequest = async () => {
     const addedRequest: Request = getDefaultRequest();
+    addedRequest.collectionId = collection.id;
 
-    const updatedCollectionDisplays = [...collectionDisplays];
-    const updatedRequests = [...updatedCollectionDisplays[collectionDisplayIdx].requests, addedRequest];
-    updatedCollectionDisplays[collectionDisplayIdx].requests = updatedRequests;
+    const updatedCollectionDisplays = structuredClone(collectionDisplays);
+    updatedCollectionDisplays[collectionDisplayIdx].requests.push(addedRequest);
     setCollectionDisplays(updatedCollectionDisplays);
 
     const store = await getOrCreateStore();
