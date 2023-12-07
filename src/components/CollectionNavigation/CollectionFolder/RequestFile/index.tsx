@@ -1,3 +1,4 @@
+import { getDefaultRequestDisplay } from "@awspostman/generators";
 import { CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
 import { getOrCreateStore } from "@awspostman/store";
 import { validateRequestName } from "@awspostman/validators";
@@ -56,6 +57,10 @@ export default function RequestFile({
                   setPendingName(detail.value);
                 }} />
                 <Button iconName="check" variant="icon" />
+                <Button iconName="close" variant="icon" formAction="none" onClick={() => {
+                  setPendingName(request.name);
+                  setIsEditingName(false);
+                }} />
               </SpaceBetween>
             </form>
           )
@@ -75,6 +80,22 @@ export default function RequestFile({
               <Button iconName="edit" variant="icon" onClick={() => {
                 setPendingName(request.name);
                 setIsEditingName(true);
+              }} />
+              <Button iconName="remove" variant="icon" onClick={async () => {
+                const isConfirmed = await confirm(`Delete "${request.name}"?`);
+                if (isConfirmed) {
+                  const updatedCollectionDisplays = structuredClone(collectionDisplays);
+                  updatedCollectionDisplays[collectionDisplayIdx].requests.splice(requestIdx, 1);
+                  setCollectionDisplays(updatedCollectionDisplays);
+
+                  if (requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx && requestDisplay.indices?.requestIdx === requestIdx) {
+                    const updatedRequestDisplay = getDefaultRequestDisplay();
+                    setRequestDisplay(updatedRequestDisplay);
+                  }
+
+                  const store = await getOrCreateStore();
+                  await store.deleteRequest(request.id);
+                }
               }} />
             </SpaceBetween>
           )
