@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { Box, SpaceBetween, Grid } from "@cloudscape-design/components";
+import { Box, SpaceBetween } from "@cloudscape-design/components";
 import { Request, ResponsePayload, CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
 import { getOrCreateStore } from "@awspostman/store";
 import CollectionNavigation from "@awspostman/components/CollectionNavigation";
@@ -84,35 +84,35 @@ export default function Home() {
 
   return (
     <Box margin="s">
-      <Grid gridDefinition={
-        isDrawerOpen
-        ? [{ colspan: 3 }, { colspan: 9 }]
-        : [{ colspan: 1 }, { colspan: 11 }]
-      }>
-        <CollectionNavigation
-          collectionDisplays={collectionDisplays}
-          setCollectionDisplays={setCollectionDisplays}
-          requestDisplay={requestDisplay}
-          setRequestDisplay={setRequestDisplay}
-          isDrawerOpen={isDrawerOpen}
-          setIsDrawerOpen={setIsDrawerOpen}
-        />
-        <SpaceBetween size="l" direction="vertical">
-          <RequestContainer
+      <div style={{ display: "flex" }}>
+        <div style={{ paddingRight: "1em" }}>
+          <CollectionNavigation
             collectionDisplays={collectionDisplays}
             setCollectionDisplays={setCollectionDisplays}
             requestDisplay={requestDisplay}
             setRequestDisplay={setRequestDisplay}
-            onSend={onSendRequest}
+            isDrawerOpen={isDrawerOpen}
+            setIsDrawerOpen={setIsDrawerOpen}
           />
-          <ResponseContainer
-            response={response}
-            loading={isSendingRequest}
-            errorText={responseErrorText}
-            onCancel={onCancelSend}
-          />
-        </SpaceBetween>
-      </Grid>
+        </div>
+        <div style={{ flexGrow: 1 }}>
+          <SpaceBetween size="l" direction="vertical">
+            <RequestContainer
+              collectionDisplays={collectionDisplays}
+              setCollectionDisplays={setCollectionDisplays}
+              requestDisplay={requestDisplay}
+              setRequestDisplay={setRequestDisplay}
+              onSend={onSendRequest}
+            />
+            <ResponseContainer
+              response={response}
+              loading={isSendingRequest}
+              errorText={responseErrorText}
+              onCancel={onCancelSend}
+            />
+          </SpaceBetween>
+        </div>
+      </div>
     </Box>
   );
 }

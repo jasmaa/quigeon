@@ -24,49 +24,47 @@ export default function CollectionNavigation({
   return (
     isDrawerOpen
       ? (
-        <Container fitHeight header={
-          <Grid gridDefinition={[{ colspan: 10 }, { colspan: 2 }]}>
-            <Header>
-              Collections
-            </Header>
-            <Box textAlign="center">
-              <Button iconName="angle-left" variant="icon" onClick={() => {
-                setIsDrawerOpen(false);
-              }} />
-            </Box>
-          </Grid>
-        }>
-          <SpaceBetween size="s" direction="vertical">
-            {collectionDisplays.map((collectionDisplay, collectionDisplayIdx) => (
-              <CollectionFolder
-                key={collectionDisplay.collection.id}
-                collectionDisplayIdx={collectionDisplayIdx}
-                collectionDisplays={collectionDisplays}
-                setCollectionDisplays={setCollectionDisplays}
-                requestDisplay={requestDisplay}
-                setRequestDisplay={setRequestDisplay}
-              />
-            ))}
-            <Button iconName="add-plus" onClick={async () => {
-              const addedCollectionDisplay = getDefaultCollectionDisplay();
+        <div style={{ width: "30em" }}>
+          <Container header={
+            <Grid gridDefinition={[{ colspan: 10 }, { colspan: 2 }]}>
+              <Header>
+                Collections
+              </Header>
+              <Box textAlign="right">
+                <Button iconName="angle-left" variant="icon" onClick={() => {
+                  setIsDrawerOpen(false);
+                }} />
+              </Box>
+            </Grid>
+          }>
+            <SpaceBetween size="s" direction="vertical">
+              {collectionDisplays.map((collectionDisplay, collectionDisplayIdx) => (
+                <CollectionFolder
+                  key={collectionDisplay.collection.id}
+                  collectionDisplayIdx={collectionDisplayIdx}
+                  collectionDisplays={collectionDisplays}
+                  setCollectionDisplays={setCollectionDisplays}
+                  requestDisplay={requestDisplay}
+                  setRequestDisplay={setRequestDisplay}
+                />
+              ))}
+              <Button iconName="add-plus" onClick={async () => {
+                const addedCollectionDisplay = getDefaultCollectionDisplay();
 
-              const updatedCollectionDisplays = [...collectionDisplays, addedCollectionDisplay];
-              setCollectionDisplays(updatedCollectionDisplays);
+                const updatedCollectionDisplays = [...collectionDisplays, addedCollectionDisplay];
+                setCollectionDisplays(updatedCollectionDisplays);
 
-              const store = await getOrCreateStore();
-              await store.upsertCollection(addedCollectionDisplay.collection);
-            }}>Add</Button>
-          </SpaceBetween>
-        </Container>
+                const store = await getOrCreateStore();
+                await store.upsertCollection(addedCollectionDisplay.collection);
+              }}>Add</Button>
+            </SpaceBetween>
+          </Container>
+        </div>
       )
       : (
-        <Container fitHeight>
-          <Box textAlign="center">
-            <Button iconName="angle-right" variant="icon" onClick={() => {
-              setIsDrawerOpen(true);
-            }} />
-          </Box>
-        </Container>
+        <Button iconName="angle-right" variant="icon" onClick={() => {
+          setIsDrawerOpen(true);
+        }} />
       )
   );
 }
