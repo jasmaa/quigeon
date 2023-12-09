@@ -56,16 +56,28 @@ async fn send_sigv4(
 
     // Attach sigv4 signature headers
     let signing_settings = SigningSettings::default();
-    let signing_params = SigningParams::builder()
-        .access_key(access_key.as_str())
-        .secret_key(secret_key.as_str())
-        .security_token(session_token.as_str())
-        .region(region.as_str())
-        .service_name(service.as_str())
-        .time(SystemTime::now())
-        .settings(signing_settings)
-        .build()
-        .unwrap();
+    let signing_params = if session_token.len() > 0 {
+        SigningParams::builder()
+            .access_key(access_key.as_str())
+            .secret_key(secret_key.as_str())
+            .security_token(session_token.as_str())
+            .region(region.as_str())
+            .service_name(service.as_str())
+            .time(SystemTime::now())
+            .settings(signing_settings)
+            .build()
+            .unwrap()
+    } else {
+        SigningParams::builder()
+            .access_key(access_key.as_str())
+            .secret_key(secret_key.as_str())
+            .region(region.as_str())
+            .service_name(service.as_str())
+            .time(SystemTime::now())
+            .settings(signing_settings)
+            .build()
+            .unwrap()
+    };
     let signable_request = SignableRequest::from(&request);
     let (signing_instructions, _signature) = sign(signable_request, &signing_params)?.into_parts();
     signing_instructions.apply_to_request(&mut request);
