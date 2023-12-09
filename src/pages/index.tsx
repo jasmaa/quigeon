@@ -37,6 +37,7 @@ export default function Home() {
       const collectionDisplay = {
         collection,
         requests,
+        isOpen: false,
       };
       collectionDisplays.push(collectionDisplay);
     }

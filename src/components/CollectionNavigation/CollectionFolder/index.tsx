@@ -19,10 +19,9 @@ export default function CollectionFolder({
   requestDisplay: RequestDisplay;
   setRequestDisplay: (requestDisplay: RequestDisplay) => void;
 }) {
-  const { collection, requests } = collectionDisplays[collectionDisplayIdx];
+  const { collection, requests, isOpen } = collectionDisplays[collectionDisplayIdx];
 
   const [isEditingName, setIsEditingName] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [pendingName, setPendingName] = useState(collection.name);
   const [isPendingNameValid, setIsPendingNameValid] = useState(true);
 
@@ -79,7 +78,9 @@ export default function CollectionFolder({
           : (
             <SpaceBetween direction="horizontal" size="xxxs">
               <Button iconName={isOpen ? "folder-open" : "folder"} variant="link" onClick={() => {
-                setIsOpen(!isOpen);
+                const updatedCollectionDisplays = structuredClone(collectionDisplays);
+                updatedCollectionDisplays[collectionDisplayIdx].isOpen = !updatedCollectionDisplays[collectionDisplayIdx].isOpen;
+                setCollectionDisplays(updatedCollectionDisplays);
               }}>{collection.name}</Button>
               <Button iconName="edit" variant="icon" onClick={() => {
                 setPendingName(collection.name);

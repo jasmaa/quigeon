@@ -1,6 +1,7 @@
 export interface CollectionDisplay {
   collection: Collection;
   requests: Request[];
+  isOpen: boolean;
 }
 
 export interface RequestDisplay {
