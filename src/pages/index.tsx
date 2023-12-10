@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { Box, SpaceBetween } from "@cloudscape-design/components";
-import { Request, ResponsePayload, CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
+import { Box, Button, Header, Modal, SpaceBetween } from "@cloudscape-design/components";
+import { Request, ResponsePayload, CollectionDisplay, RequestDisplay, Variable } from "@quigeon/interfaces";
 import { getOrCreateStore } from "@quigeon/store";
 import CollectionNavigation from "@quigeon/components/CollectionNavigation";
 import RequestContainer from "@quigeon/components/RequestContainer";
 import ResponseContainer from "@quigeon/components/ResponseContainer";
 import { getDefaultRequestDisplay } from "@quigeon/generators";
+import { generateSendableRequest } from "@quigeon/variables";
+import VariableEditor from "@quigeon/components/VariableEditor";
 
 // Request id for matching current request when multiple requests are in flight
 let pendingRequestId: string | null = null;
@@ -14,6 +16,13 @@ let pendingRequestId: string | null = null;
 export default function Home() {
   const [collectionDisplays, setCollectionDisplays] = useState<CollectionDisplay[]>([]);
   const [requestDisplay, setRequestDisplay] = useState<RequestDisplay>(getDefaultRequestDisplay());
+  const [variables, setVariables] = useState<Variable[]>([
+    {
+      name: "",
+      value: "",
+    }
+  ]);
+  const [isVariableModalVisible, setIsVariableModalVisible] = useState(false);
   const [isSendingRequest, setIsSendingRequest] = useState(false);
   const [response, setResponse] = useState<ResponsePayload>();
   const [responseErrorText, setResponseErrorText] = useState("");
@@ -55,9 +64,10 @@ export default function Home() {
     setResponseErrorText("");
     (async () => {
       try {
+        const sendableRequest = generateSendableRequest(request, variables);
         const res = await invoke('send_sigv4_cmd', {
-          ...request,
-          headers: request.headers.filter((header) => header.editable),
+          ...sendableRequest,
+          headers: sendableRequest.headers.filter((header) => header.editable),
         }) as ResponsePayload;
         // Only update if this request is still the current request
         if (pendingRequestId === currentRequestId) {
@@ -84,36 +94,57 @@ export default function Home() {
   }
 
   return (
-    <Box margin="s">
-      <div style={{ display: "flex" }}>
-        <div style={{ paddingRight: "1em" }}>
-          <CollectionNavigation
-            collectionDisplays={collectionDisplays}
-            setCollectionDisplays={setCollectionDisplays}
-            requestDisplay={requestDisplay}
-            setRequestDisplay={setRequestDisplay}
-            isDrawerOpen={isDrawerOpen}
-            setIsDrawerOpen={setIsDrawerOpen}
-          />
+    <>
+      <Modal
+        visible={isVariableModalVisible}
+        onDismiss={() => setIsVariableModalVisible(false)}
+        header={<Header variant="h2">Environment Variables</Header>}
+      >
+        <VariableEditor
+          variables={variables}
+          onChange={(variables) => { setVariables(variables) }}
+        />
+      </Modal>
+      <Box margin="s">
+        <div style={{ display: "flex" }}>
+          <div style={{ paddingRight: "1em" }}>
+            <SpaceBetween size="l" direction="vertical">
+              <CollectionNavigation
+                collectionDisplays={collectionDisplays}
+                setCollectionDisplays={setCollectionDisplays}
+                requestDisplay={requestDisplay}
+                setRequestDisplay={setRequestDisplay}
+                isDrawerOpen={isDrawerOpen}
+                setIsDrawerOpen={setIsDrawerOpen}
+              />
+            </SpaceBetween>
+          </div>
+          <div style={{ flexGrow: 1, paddingRight: "1em" }}>
+            <SpaceBetween size="l" direction="vertical">
+              <RequestContainer
+                collectionDisplays={collectionDisplays}
+                setCollectionDisplays={setCollectionDisplays}
+                requestDisplay={requestDisplay}
+                setRequestDisplay={setRequestDisplay}
+                onSend={onSendRequest}
+              />
+              <ResponseContainer
+                response={response}
+                loading={isSendingRequest}
+                errorText={responseErrorText}
+                onCancel={onCancelSend}
+              />
+            </SpaceBetween>
+          </div>
+          <div>
+            <SpaceBetween size="m" direction="vertical">
+              <Button iconName="key" variant="icon" onClick={(e) => {
+                setIsVariableModalVisible(true);
+              }} />
+            </SpaceBetween>
+          </div>
         </div>
-        <div style={{ flexGrow: 1 }}>
-          <SpaceBetween size="l" direction="vertical">
-            <RequestContainer
-              collectionDisplays={collectionDisplays}
-              setCollectionDisplays={setCollectionDisplays}
-              requestDisplay={requestDisplay}
-              setRequestDisplay={setRequestDisplay}
-              onSend={onSendRequest}
-            />
-            <ResponseContainer
-              response={response}
-              loading={isSendingRequest}
-              errorText={responseErrorText}
-              onCancel={onCancelSend}
-            />
-          </SpaceBetween>
-        </div>
-      </div>
-    </Box>
+      </Box>
+    </>
   );
 }

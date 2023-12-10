@@ -45,3 +45,16 @@ export interface ResponsePayload {
   timeMs: number;
   text: string;
 }
+
+export interface TextNode {
+  text: string
+  type: "none" | "var"
+  varMetadata?: {
+    name: string;
+  }
+}
+
+export interface Variable {
+  name: string;
+  value: string;
+}
