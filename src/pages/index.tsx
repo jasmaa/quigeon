@@ -75,7 +75,7 @@ export default function Home() {
       } catch (err) {
         console.error(err);
         if (pendingRequestId === currentRequestId) {
-          setResponseErrorText("error");
+          setResponseErrorText((err as Error).toString());
         }
       } finally {
         if (pendingRequestId === currentRequestId) {
