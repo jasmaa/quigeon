@@ -6,8 +6,7 @@ import { getOrCreateStore } from "@quigeon/store";
 import CollectionNavigation from "@quigeon/components/CollectionNavigation";
 import RequestContainer from "@quigeon/components/RequestContainer";
 import ResponseContainer from "@quigeon/components/ResponseContainer";
-import { getDefaultRequestDisplay } from "@quigeon/generators";
-import { generateSendableRequest } from "@quigeon/variables";
+import { generateVariableSubsitutedRequest, getDefaultRequestDisplay } from "@quigeon/generators";
 import VariableEditor from "@quigeon/components/VariableEditor";
 
 // Request id for matching current request when multiple requests are in flight
@@ -64,7 +63,7 @@ export default function Home() {
     setResponseErrorText("");
     (async () => {
       try {
-        const sendableRequest = generateSendableRequest(request, variables);
+        const sendableRequest = generateVariableSubsitutedRequest(request, variables);
         const res = await invoke('send_sigv4_cmd', {
           ...sendableRequest,
           headers: sendableRequest.headers.filter((header) => header.editable),
