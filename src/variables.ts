@@ -1,7 +1,7 @@
 import { Request, TextNode, Variable } from "./interfaces";
 
 export function parseTextNodes(s: string) {
-  const matches = [...s.matchAll(/\$(\w+)/g)];
+  const matches = [...s.matchAll(/(?:\$(\w+)|\$\{(\w+)\})/g)];
   const textNodes: TextNode[] = [];
   let p = 0;
   let q = 0;
@@ -21,7 +21,7 @@ export function parseTextNodes(s: string) {
       text,
       type: "var",
       varMetadata: {
-        name: m[1],
+        name: m[1] ?? m[2],
       }
     });
     p = q;
