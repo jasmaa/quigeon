@@ -54,6 +54,12 @@ export interface TextNode {
   }
 }
 
+export interface Environment {
+  id: string;
+  name: string;
+  variables: Variable[];
+}
+
 export interface Variable {
   name: string;
   value: string;

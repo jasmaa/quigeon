@@ -1,4 +1,4 @@
-import { CollectionDisplay, Request, RequestDisplay, Variable } from "./interfaces";
+import { CollectionDisplay, Environment, Request, RequestDisplay, Variable } from "./interfaces";
 import { generateId } from "./store";
 import { parseTextNodes } from "./parsing";
 
@@ -33,6 +33,19 @@ export function getDefaultCollectionDisplay(): CollectionDisplay {
     },
     isOpen: false,
     requests: [],
+  };
+}
+
+export function getDefaultEnvironment(): Environment {
+  return {
+    id: generateId(),
+    name: "Default",
+    variables: [
+      {
+        name: "",
+        value: "",
+      }
+    ],
   };
 }
 

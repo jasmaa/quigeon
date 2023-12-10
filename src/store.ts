@@ -1,5 +1,5 @@
 import Database from "tauri-plugin-sql-api";
-import { Collection, Request } from "./interfaces";
+import { Collection, Environment, Request } from "./interfaces";
 
 export function generateId() {
   const crypto = require('crypto');
@@ -35,6 +35,11 @@ class Store {
       url VARCHAR(256),
       body BLOB,
       headers BLOB
+    )`);
+    await this.db.execute(`CREATE TABLE IF NOT EXISTS environments (
+      id VARCHAR(32) PRIMARY KEY,
+      name VARCHAR(256),
+      variables BLOB
     )`);
     this.isInitialized = true;
   }
@@ -100,6 +105,32 @@ class Store {
       `DELETE FROM requests WHERE id=$1`,
       [id],
     );
+  }
+
+  async upsertEnvironment(environment: Environment): Promise<Environment> {
+    await this.db?.execute(
+      `INSERT into environments (id, name, variables)
+      VALUES ($1, $2, $3)
+      ON CONFLICT(id)
+      DO UPDATE SET name=$2, variables=$3`,
+      [environment.id, environment.name, environment.variables],
+    );
+    return environment;
+  }
+
+  async getEnvironment(id: string): Promise<Environment> {
+    const rows = await this.db?.select("SELECT * FROM environments WHERE id=$1", [id]) as any[];
+    const row = rows[0];
+    row.variables = JSON.parse(row.variables);
+    return row as Environment;
+  }
+
+  async listEnvironments(): Promise<Environment[]> {
+    const rows = await this.db?.select("SELECT * FROM environments") as any[];
+    for (const row of rows) {
+      row.variables = JSON.parse(row.variables);
+    }
+    return rows as Environment[];
   }
 }
 
