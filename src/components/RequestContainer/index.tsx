@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, TextContent, FormField, ColumnLayout } from "@cloudscape-design/components";
-import RequestHeaderEditor from "@awspostman/components/RequestHeaderEditor";
-import { RequestDisplay, Request, CollectionDisplay } from "@awspostman/interfaces";
-import { validateRequestName } from "@awspostman/validators";
-import { getOrCreateStore } from "@awspostman/store";
+import RequestHeaderEditor from "@quigeon/components/RequestHeaderEditor";
+import { RequestDisplay, Request, CollectionDisplay } from "@quigeon/interfaces";
+import { validateRequestName } from "@quigeon/validators";
+import { getOrCreateStore } from "@quigeon/store";
 
 export default function RequestContainer({
   collectionDisplays,

@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, SpaceBetween, Grid, Input } from "@cloudscape-design/components";
-import { RequestHeader } from "@awspostman/interfaces";
+import { RequestHeader } from "@quigeon/interfaces";
 
 const PREDEFINED_HEADERS = [
   {

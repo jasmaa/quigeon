@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Button, Header, Container, SpaceBetween, Grid, Box } from "@cloudscape-design/components";
-import { CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
-import { getOrCreateStore } from "@awspostman/store";
-import { getDefaultCollectionDisplay } from "@awspostman/generators";
+import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
+import { getOrCreateStore } from "@quigeon/store";
+import { getDefaultCollectionDisplay } from "@quigeon/generators";
 import CollectionFolder from "./CollectionFolder";
 
 export default function CollectionNavigation({

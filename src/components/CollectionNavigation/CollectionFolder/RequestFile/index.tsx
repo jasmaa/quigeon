@@ -1,7 +1,7 @@
-import { getDefaultRequestDisplay } from "@awspostman/generators";
-import { CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
-import { getOrCreateStore } from "@awspostman/store";
-import { validateRequestName } from "@awspostman/validators";
+import { getDefaultRequestDisplay } from "@quigeon/generators";
+import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
+import { getOrCreateStore } from "@quigeon/store";
+import { validateRequestName } from "@quigeon/validators";
 import { Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { useState } from "react";
 

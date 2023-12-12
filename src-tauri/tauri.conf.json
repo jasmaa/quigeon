@@ -7,7 +7,7 @@
     "distDir": "../out"
   },
   "package": {
-    "productName": "awspostman",
+    "productName": "quigeon",
     "version": "0.1.0"
   },
   "tauri": {
@@ -31,7 +31,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.jasonmaa.awspostman",
+      "identifier": "com.jasonmaa.quigeon",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -60,7 +60,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "awspostman",
+        "title": "quigeon",
         "width": 800
       }
     ]

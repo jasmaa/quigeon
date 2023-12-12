@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Box, SpaceBetween } from "@cloudscape-design/components";
-import { Request, ResponsePayload, CollectionDisplay, RequestDisplay } from "@awspostman/interfaces";
-import { getOrCreateStore } from "@awspostman/store";
-import CollectionNavigation from "@awspostman/components/CollectionNavigation";
-import RequestContainer from "@awspostman/components/RequestContainer";
-import ResponseContainer from "@awspostman/components/ResponseContainer";
-import { getDefaultRequestDisplay } from "@awspostman/generators";
+import { Request, ResponsePayload, CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
+import { getOrCreateStore } from "@quigeon/store";
+import CollectionNavigation from "@quigeon/components/CollectionNavigation";
+import RequestContainer from "@quigeon/components/RequestContainer";
+import ResponseContainer from "@quigeon/components/ResponseContainer";
+import { getDefaultRequestDisplay } from "@quigeon/generators";
 
 // Request id for matching current request when multiple requests are in flight
 let pendingRequestId: string | null = null;
@@ -17,7 +17,7 @@ export default function Home() {
   const [isSendingRequest, setIsSendingRequest] = useState(false);
   const [response, setResponse] = useState<ResponsePayload>();
   const [responseErrorText, setResponseErrorText] = useState("");
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     (async () => {

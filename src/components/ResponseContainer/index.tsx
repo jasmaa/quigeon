@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Badge, Button, SpaceBetween, Container, Header, Spinner, Flashbar } from "@cloudscape-design/components";
 import hljs from "highlight.js";
 import * as beautify from "js-beautify";
-import { ResponsePayload } from "@awspostman/interfaces";
+import { ResponsePayload } from "@quigeon/interfaces";
 
 enum PayloadType {
   JSON,

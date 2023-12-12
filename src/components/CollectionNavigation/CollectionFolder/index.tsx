@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Box, Button, Input, SpaceBetween } from "@cloudscape-design/components";
-import { validateCollectionName } from "@awspostman/validators";
-import { getOrCreateStore } from "@awspostman/store";
-import { CollectionDisplay, RequestDisplay, Request } from "@awspostman/interfaces";
-import { getDefaultRequest, getDefaultRequestDisplay } from "@awspostman/generators";
+import { validateCollectionName } from "@quigeon/validators";
+import { getOrCreateStore } from "@quigeon/store";
+import { CollectionDisplay, RequestDisplay, Request } from "@quigeon/interfaces";
+import { getDefaultRequest, getDefaultRequestDisplay } from "@quigeon/generators";
 import RequestFile from "./RequestFile";
 
 export default function CollectionFolder({
