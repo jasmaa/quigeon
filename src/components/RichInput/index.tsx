@@ -1,15 +1,10 @@
-import { useEffect, useState } from "react";
 import { Input, InputProps, TextContent } from "@cloudscape-design/components";
 import { parseTextNodes } from "@quigeon/parsing";
 import { TextNode } from "@quigeon/interfaces";
 
 export default function RichInput(props: InputProps) {
-  const [textNodes, setTextNodes] = useState<TextNode[]>(parseTextNodes(props.value));
 
-  useEffect(() => {
-    const textNodes = parseTextNodes(props.value);
-    setTextNodes(textNodes);
-  }, [props.value]);
+  const textNodes: TextNode[] = parseTextNodes(props.value);
 
   return (
     <>
