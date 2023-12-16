@@ -4,6 +4,7 @@ import RequestHeaderEditor from "@quigeon/components/RequestHeaderEditor";
 import { RequestDisplay, Request, CollectionDisplay } from "@quigeon/interfaces";
 import { validateRequestName } from "@quigeon/validators";
 import { getOrCreateStore } from "@quigeon/store";
+import RichInput from "@quigeon/components/RichInput";
 
 export default function RequestContainer({
   collectionDisplays,
@@ -135,7 +136,7 @@ export default function RequestContainer({
             ]}
             selectedAriaLabel="Selected"
           />
-          <Input value={url} placeholder="URL" onChange={({ detail }) => {
+          <RichInput value={url} placeholder="URL" onChange={({ detail }) => {
             const updatedRequestDisplay = structuredClone(requestDisplay);
             updatedRequestDisplay.request.url = detail.value;
             onChangeRequestDisplay(updatedRequestDisplay);
@@ -152,7 +153,7 @@ export default function RequestContainer({
                   <SpaceBetween size="s" direction="vertical">
                     <FormField
                       label="Access Key">
-                      <Input value={accessKey} placeholder="Access key" onChange={({ detail }) => {
+                      <RichInput value={accessKey} placeholder="Access key" onChange={({ detail }) => {
                         const updatedRequestDisplay = structuredClone(requestDisplay);
                         updatedRequestDisplay.request.accessKey = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);
@@ -160,7 +161,7 @@ export default function RequestContainer({
                     </FormField>
                     <FormField
                       label="Secret Key">
-                      <Input value={secretKey} placeholder="Secret key" onChange={({ detail }) => {
+                      <RichInput value={secretKey} placeholder="Secret key" onChange={({ detail }) => {
                         const updatedRequestDisplay = structuredClone(requestDisplay);
                         updatedRequestDisplay.request.secretKey = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);
@@ -170,7 +171,7 @@ export default function RequestContainer({
                   <SpaceBetween size="s" direction="vertical">
                     <FormField
                       label="Region">
-                      <Input value={region} placeholder="Region" onChange={({ detail }) => {
+                      <RichInput value={region} placeholder="Region" onChange={({ detail }) => {
                         const updatedRequestDisplay = structuredClone(requestDisplay);
                         updatedRequestDisplay.request.region = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);
@@ -178,7 +179,7 @@ export default function RequestContainer({
                     </FormField>
                     <FormField
                       label="Service">
-                      <Input value={service} placeholder="Service" onChange={({ detail }) => {
+                      <RichInput value={service} placeholder="Service" onChange={({ detail }) => {
                         const updatedRequestDisplay = structuredClone(requestDisplay);
                         updatedRequestDisplay.request.service = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);
@@ -186,7 +187,7 @@ export default function RequestContainer({
                     </FormField>
                     <FormField
                       label="Session Token (optional)">
-                      <Input value={sessionToken} placeholder="Session token" onChange={({ detail }) => {
+                      <RichInput value={sessionToken} placeholder="Session token" onChange={({ detail }) => {
                         const updatedRequestDisplay = structuredClone(requestDisplay);
                         updatedRequestDisplay.request.sessionToken = detail.value;
                         onChangeRequestDisplay(updatedRequestDisplay);

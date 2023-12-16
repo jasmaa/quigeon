@@ -1,9 +1,45 @@
 import Database from "tauri-plugin-sql-api";
-import { Collection, Request } from "./interfaces";
+import { Collection, EncryptionKeySecret, Environment, Request, Secret, Variable } from "./interfaces";
+
+const crypto = require('crypto');
+const encryptionAlgo = "aes-256-ctr";
+const version = process.env.NEXT_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION!;
 
 export function generateId() {
-  const crypto = require('crypto');
   return crypto.randomBytes(16).toString("hex");
+}
+
+function getEncryptionKey(version: string) {
+  const encryptionSecrets = JSON.parse(process.env.NEXT_PUBLIC_ENCRYPTION_KEY_SECRETS!) as EncryptionKeySecret[];
+  const secretValue = encryptionSecrets.find((secret) => secret.version === version)?.secretValue;
+  const key = crypto.createHash("sha256").update(String(secretValue)).digest('base64').substr(0, 32);
+  return key;
+}
+
+function encryptSecret(s: string, version: string): string {
+  const iv = crypto.randomBytes(16);
+  const key = getEncryptionKey(version);
+
+  const cipher = crypto.createCipheriv(encryptionAlgo, key, iv);
+  const encrypted = cipher.update(s);
+
+  const encryptedB64 = Buffer.from(encrypted).toString("base64");
+  const ivB64 = Buffer.from(iv).toString("base64");
+  const secret = `${encryptedB64}:${ivB64}`;
+  return secret;
+}
+
+function decryptSecret(s: string, version: string): string {
+  const [encryptedB64, ivB64] = s.split(":");
+
+  const iv = new Uint8Array(Buffer.from(ivB64, 'base64'));
+  const encrypted = new Uint8Array(Buffer.from(encryptedB64, 'base64'));
+
+  const key = getEncryptionKey(version);
+  const decipher = crypto.createDecipheriv(encryptionAlgo, key, iv);
+  const decrypted = decipher.update(encrypted);
+
+  return decrypted.toString();
 }
 
 class Store {
@@ -35,6 +71,11 @@ class Store {
       url VARCHAR(256),
       body BLOB,
       headers BLOB
+    )`);
+    await this.db.execute(`CREATE TABLE IF NOT EXISTS environments (
+      id VARCHAR(32) PRIMARY KEY,
+      name VARCHAR(256),
+      variables BLOB
     )`);
     this.isInitialized = true;
   }
@@ -100,6 +141,39 @@ class Store {
       `DELETE FROM requests WHERE id=$1`,
       [id],
     );
+  }
+
+  async upsertEnvironment(environment: Environment): Promise<Environment> {
+    const variablesSecret: Secret = {
+      version,
+      encryptedValue: encryptSecret(JSON.stringify(environment.variables), version),
+    };
+
+    await this.db?.execute(
+      `INSERT into environments (id, name, variables)
+      VALUES ($1, $2, $3)
+      ON CONFLICT(id)
+      DO UPDATE SET name=$2, variables=$3`,
+      [environment.id, environment.name, variablesSecret],
+    );
+    return environment;
+  }
+
+  async getEnvironment(id: string): Promise<Environment> {
+    const rows = await this.db?.select("SELECT * FROM environments WHERE id=$1", [id]) as any[];
+    const row = rows[0];
+    const variablesSecret = JSON.parse(row.variables) as Secret;
+    row.variables = JSON.parse(decryptSecret(variablesSecret.encryptedValue, variablesSecret.version)) as Variable[];
+    return row as Environment;
+  }
+
+  async listEnvironments(): Promise<Environment[]> {
+    const rows = await this.db?.select("SELECT * FROM environments") as any[];
+    for (const row of rows) {
+      const variablesSecret = JSON.parse(row.variables) as Secret;
+      row.variables = JSON.parse(decryptSecret(variablesSecret.encryptedValue, variablesSecret.version)) as Variable[];
+    }
+    return rows as Environment[];
   }
 }
 

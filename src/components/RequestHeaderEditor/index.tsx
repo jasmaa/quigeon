@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, SpaceBetween, Grid, Input } from "@cloudscape-design/components";
 import { RequestHeader } from "@quigeon/interfaces";
+import RichInput from "@quigeon/components/RichInput";
 
 const PREDEFINED_HEADERS = [
   {
@@ -39,7 +40,7 @@ export default function RequestHeaderEditor({
             updatedHeaders[idx - PREDEFINED_HEADERS.length].key = detail.value;
             onChange(updatedHeaders);
           }} />
-          <Input value={header.value} placeholder="Value" disabled={!header.editable} onChange={({ detail }) => {
+          <RichInput value={header.value} placeholder="Value" disabled={!header.editable} onChange={({ detail }) => {
             const updatedHeaders = [...headers];
             updatedHeaders[idx - PREDEFINED_HEADERS.length].value = detail.value;
             onChange(updatedHeaders);

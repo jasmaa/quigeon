@@ -45,3 +45,32 @@ export interface ResponsePayload {
   timeMs: number;
   text: string;
 }
+
+export interface TextNode {
+  text: string
+  type: "none" | "var"
+  varMetadata?: {
+    name: string;
+  }
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  variables: Variable[];
+}
+
+export interface Variable {
+  name: string;
+  value: string;
+}
+
+export interface EncryptionKeySecret {
+  version: string;
+  secretValue: string;
+}
+
+export interface Secret {
+  version: string;
+  encryptedValue: string;
+}
