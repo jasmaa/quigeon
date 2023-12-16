@@ -64,3 +64,13 @@ export interface Variable {
   name: string;
   value: string;
 }
+
+export interface EncryptionKeySecret {
+  version: string;
+  secretValue: string;
+}
+
+export interface Secret {
+  version: string;
+  encryptedValue: string;
+}

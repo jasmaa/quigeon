@@ -1,22 +1,24 @@
 import Database from "tauri-plugin-sql-api";
-import { Collection, Environment, Request } from "./interfaces";
+import { Collection, EncryptionKeySecret, Environment, Request, Secret, Variable } from "./interfaces";
 
 const crypto = require('crypto');
-const encryptionAlgo = "aes-256-ctr"
+const encryptionAlgo = "aes-256-ctr";
+const version = process.env.NEXT_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION!;
 
 export function generateId() {
   return crypto.randomBytes(16).toString("hex");
 }
 
-function getEncryptionKey() {
-  const secret = process.env.NEXT_PUBLIC_ENCRYPTION_SECRET!;
-  const key = crypto.createHash("sha256").update(String(secret)).digest('base64').substr(0, 32);
+function getEncryptionKey(version: string) {
+  const encryptionSecrets = JSON.parse(process.env.NEXT_PUBLIC_ENCRYPTION_KEY_SECRETS!) as EncryptionKeySecret[];
+  const secretValue = encryptionSecrets.find((secret) => secret.version === version)?.secretValue;
+  const key = crypto.createHash("sha256").update(String(secretValue)).digest('base64').substr(0, 32);
   return key;
 }
 
-function encryptSecret(s: string): string {
+function encryptSecret(s: string, version: string): string {
   const iv = crypto.randomBytes(16);
-  const key = getEncryptionKey();
+  const key = getEncryptionKey(version);
 
   const cipher = crypto.createCipheriv(encryptionAlgo, key, iv);
   const encrypted = cipher.update(s);
@@ -27,13 +29,13 @@ function encryptSecret(s: string): string {
   return secret;
 }
 
-function decryptSecret(s: string): string {
+function decryptSecret(s: string, version: string): string {
   const [encryptedB64, ivB64] = s.split(":");
 
   const iv = new Uint8Array(Buffer.from(ivB64, 'base64'));
   const encrypted = new Uint8Array(Buffer.from(encryptedB64, 'base64'));
 
-  const key = getEncryptionKey();
+  const key = getEncryptionKey(version);
   const decipher = crypto.createDecipheriv(encryptionAlgo, key, iv);
   const decrypted = decipher.update(encrypted);
 
@@ -142,14 +144,17 @@ class Store {
   }
 
   async upsertEnvironment(environment: Environment): Promise<Environment> {
-    const encryptedVariables = encryptSecret(JSON.stringify(environment.variables));
+    const variablesSecret: Secret = {
+      version,
+      encryptedValue: encryptSecret(JSON.stringify(environment.variables), version),
+    };
 
     await this.db?.execute(
       `INSERT into environments (id, name, variables)
       VALUES ($1, $2, $3)
       ON CONFLICT(id)
       DO UPDATE SET name=$2, variables=$3`,
-      [environment.id, environment.name, encryptedVariables],
+      [environment.id, environment.name, variablesSecret],
     );
     return environment;
   }
@@ -157,14 +162,16 @@ class Store {
   async getEnvironment(id: string): Promise<Environment> {
     const rows = await this.db?.select("SELECT * FROM environments WHERE id=$1", [id]) as any[];
     const row = rows[0];
-    row.variables = JSON.parse(decryptSecret(row.variables));
+    const variablesSecret = JSON.parse(row.variables) as Secret;
+    row.variables = JSON.parse(decryptSecret(variablesSecret.encryptedValue, variablesSecret.version)) as Variable[];
     return row as Environment;
   }
 
   async listEnvironments(): Promise<Environment[]> {
     const rows = await this.db?.select("SELECT * FROM environments") as any[];
     for (const row of rows) {
-      row.variables = JSON.parse(decryptSecret(row.variables));
+      const variablesSecret = JSON.parse(row.variables) as Secret;
+      row.variables = JSON.parse(decryptSecret(variablesSecret.encryptedValue, variablesSecret.version)) as Variable[];
     }
     return rows as Environment[];
   }
