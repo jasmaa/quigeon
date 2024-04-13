@@ -7,7 +7,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  transpilePackages: ['@cloudscape-design/components'],
+  transpilePackages: ['@cloudscape-design/components', '@cloudscape-design/design-tokens'],
 }
 
 module.exports = nextConfig
