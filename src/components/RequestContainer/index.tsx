@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, TextContent, FormField, ColumnLayout } from "@cloudscape-design/components";
+import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, TextContent, FormField, ColumnLayout, CodeEditor } from "@cloudscape-design/components";
 import RequestHeaderEditor from "@quigeon/components/RequestHeaderEditor";
 import { RequestDisplay, Request, CollectionDisplay } from "@quigeon/interfaces";
 import { validateRequestName } from "@quigeon/validators";
 import { getOrCreateStore } from "@quigeon/store";
 import RichInput from "@quigeon/components/RichInput";
+import BodyEditor from "./RequestBodyEditor";
 
 export default function RequestContainer({
   collectionDisplays,
@@ -214,15 +215,9 @@ export default function RequestContainer({
               label: "Body",
               id: "body",
               content: (
-                <Textarea
-                  onChange={({ detail }) => {
-                    const updatedRequestDisplay = structuredClone(requestDisplay);
-                    updatedRequestDisplay.request.body = detail.value;
-                    onChangeRequestDisplay(updatedRequestDisplay);
-                  }}
-                  value={body}
-                  placeholder="Body"
-                  rows={10}
+                <BodyEditor
+                  requestDisplay={requestDisplay}
+                  onChangeRequestDisplay={onChangeRequestDisplay}
                 />
               )
             },
