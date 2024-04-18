@@ -4,6 +4,7 @@
 )]
 
 use std::{
+    collections::HashMap,
     error::Error,
     fs::File,
     io::{Read, Write},
@@ -12,7 +13,7 @@ use std::{
 };
 
 use aws_sigv4::http_request::{sign, SignableRequest, SigningParams, SigningSettings};
-use http::{self, HeaderName, HeaderValue};
+use http::{self, HeaderMap, HeaderName, HeaderValue};
 use sha2::{Digest, Sha256};
 
 #[derive(serde::Deserialize, Clone)]
@@ -24,11 +25,23 @@ struct RequestHeader {
 #[derive(serde::Serialize)]
 struct ResponsePayload {
     status: String,
+    #[serde(rename = "headers")]
+    headers: HashMap<String, Vec<String>>,
     #[serde(rename = "sizeBytes")]
     size_bytes: usize,
     #[serde(rename = "timeMs")]
     time_ms: usize,
     text: String,
+}
+
+fn convert_headers(headers: &HeaderMap<HeaderValue>) -> HashMap<String, Vec<String>> {
+    let mut header_hashmap = HashMap::new();
+    for (k, v) in headers {
+        let k = k.as_str().to_owned();
+        let v = String::from_utf8_lossy(v.as_bytes()).into_owned();
+        header_hashmap.entry(k).or_insert_with(Vec::new).push(v)
+    }
+    header_hashmap
 }
 
 async fn send_sigv4(
@@ -105,11 +118,14 @@ async fn send_sigv4(
     let end_time = Instant::now();
 
     let status = &res.status().to_string();
+    let headers = &res.headers().clone();
     let time_ms = (end_time - start_time).as_millis() as usize;
     let text = res.text().await?.clone();
     let size_bytes = text.as_bytes().len();
+
     Ok(ResponsePayload {
         status: status.clone(),
+        headers: convert_headers(headers),
         time_ms: time_ms,
         size_bytes: size_bytes,
         text: text,

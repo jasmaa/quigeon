@@ -26,18 +26,32 @@ export default function ResponseContainer({
     hljs.highlightAll();
   }, [response]);
 
-  const getPayloadType = (text: string) => {
-    if (text.startsWith("<")) {
-      return PayloadType.HTML;
-    } else if (text.startsWith("{")) {
-      return PayloadType.JSON;
+  const getPayloadType = (responsePayload: ResponsePayload) => {
+    const { headers, text } = responsePayload;
+    const contentType = headers["content-type"]?.[0];
+    if (contentType) {
+      // Determine payload type with content type
+      if (contentType.includes("xml") || contentType.includes("html")) {
+        return PayloadType.HTML;
+      } else if (contentType.includes("json")) {
+        return PayloadType.JSON;
+      } else {
+        return PayloadType.UNKNOWN;
+      }
     } else {
-      return PayloadType.UNKNOWN;
+      // Fallback on text based guess
+      if (text.startsWith("<")) {
+        return PayloadType.HTML;
+      } else if (text.startsWith("{")) {
+        return PayloadType.JSON;
+      } else {
+        return PayloadType.UNKNOWN;
+      }
     }
   }
 
-  const getHighlightClassName = (text: string) => {
-    const payloadType = getPayloadType(text);
+  const getHighlightClassName = (responsePayload: ResponsePayload) => {
+    const payloadType = getPayloadType(responsePayload);
     switch (payloadType) {
       case PayloadType.HTML:
         return "language-html";
@@ -48,8 +62,9 @@ export default function ResponseContainer({
     }
   }
 
-  const getBeautifiedText = (text: string) => {
-    const payloadType = getPayloadType(text);
+  const getBeautifiedText = (responsePayload: ResponsePayload) => {
+    const payloadType = getPayloadType(responsePayload);
+    const { text } = responsePayload;
     switch (payloadType) {
       case PayloadType.HTML:
         return beautify.html_beautify(text, {});
@@ -103,8 +118,8 @@ export default function ResponseContainer({
                       <Badge color="blue">Size: {response.sizeBytes}B</Badge>
                     </SpaceBetween>
                     <pre style={{ whiteSpace: "pre-wrap" }}>
-                      <code className={getHighlightClassName(response.text)}>{
-                        getBeautifiedText(response.text)
+                      <code className={getHighlightClassName(response)}>{
+                        getBeautifiedText(response)
                       }</code>
                     </pre>
                   </>

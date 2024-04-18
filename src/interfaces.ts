@@ -41,6 +41,7 @@ export interface Request {
 
 export interface ResponsePayload {
   status: string;
+  headers: { [key: string]: string[] };
   sizeBytes: number;
   timeMs: number;
   text: string;

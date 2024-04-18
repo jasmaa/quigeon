@@ -19,7 +19,7 @@ export default function Home() {
   const [responseErrorText, setResponseErrorText] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const pendingRequestId = useRef<string>()
+  const pendingRequestId = useRef<string>();
 
   useEffect(() => {
     (async () => {
