@@ -117,7 +117,7 @@ export default function ResponseContainer({
                       <Badge color="blue">Time: {response.timeMs}ms</Badge>
                       <Badge color="blue">Size: {response.sizeBytes}B</Badge>
                     </SpaceBetween>
-                    <pre style={{ whiteSpace: "pre-wrap" }}>
+                    <pre style={{ whiteSpace: "pre-wrap", maxWidth: "60vw" }}>
                       <code className={getHighlightClassName(response)}>{
                         getBeautifiedText(response)
                       }</code>
