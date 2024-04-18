@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Box, Button, Header, Modal, SpaceBetween } from "@cloudscape-design/components";
 import { Request, ResponsePayload, CollectionDisplay, RequestDisplay, Environment } from "@quigeon/interfaces";
@@ -9,9 +9,6 @@ import ResponseContainer from "@quigeon/components/ResponseContainer";
 import { generateVariableSubsitutedRequest, getDefaultEnvironment, getDefaultRequestDisplay } from "@quigeon/generators";
 import VariableEditor from "@quigeon/components/VariableEditor";
 
-// Request id for matching current request when multiple requests are in flight
-let pendingRequestId: string | null = null;
-
 export default function Home() {
   const [collectionDisplays, setCollectionDisplays] = useState<CollectionDisplay[]>([]);
   const [requestDisplay, setRequestDisplay] = useState<RequestDisplay>(getDefaultRequestDisplay());
@@ -21,6 +18,8 @@ export default function Home() {
   const [response, setResponse] = useState<ResponsePayload>();
   const [responseErrorText, setResponseErrorText] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const pendingRequestId = useRef<string>()
 
   useEffect(() => {
     (async () => {
@@ -65,11 +64,12 @@ export default function Home() {
   const onSendRequest = (request: Request) => {
     // Generate a unique id for this request
     const currentRequestId = crypto.randomUUID();
-    pendingRequestId = currentRequestId;
+    pendingRequestId.current = currentRequestId;
 
     setIsSendingRequest(true);
     setResponse(undefined);
     setResponseErrorText("");
+
     (async () => {
       try {
         const sendableRequest = generateVariableSubsitutedRequest(request, environment!.variables);
@@ -78,17 +78,17 @@ export default function Home() {
           headers: sendableRequest.headers.filter((header) => header.editable),
         }) as ResponsePayload;
         // Only update if this request is still the current request
-        if (pendingRequestId === currentRequestId) {
+        if (pendingRequestId.current === currentRequestId) {
           setResponse(res);
         }
       } catch (err) {
         console.error(err);
-        if (pendingRequestId === currentRequestId) {
+        if (pendingRequestId.current === currentRequestId) {
           setResponseErrorText((err as Error).toString());
         }
       } finally {
-        if (pendingRequestId === currentRequestId) {
-          pendingRequestId = null;
+        if (pendingRequestId.current === currentRequestId) {
+          pendingRequestId.current = undefined;
           setIsSendingRequest(false);
         }
       }
@@ -96,7 +96,7 @@ export default function Home() {
   }
 
   const onCancelSend = () => {
-    pendingRequestId = null;
+    pendingRequestId.current = undefined;
     setIsSendingRequest(false);
     setResponseErrorText("Request cancelled");
   }
