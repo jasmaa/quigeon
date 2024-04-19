@@ -68,6 +68,7 @@ export interface Variable {
 
 export interface EncryptionKeySecret {
   version: string;
+  method: string;
   secretValue: string;
 }
 

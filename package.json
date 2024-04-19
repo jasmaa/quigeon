@@ -11,6 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-crypto/client-browser": "^4.0.0",
     "@cloudscape-design/components": "^3.0.225",
     "@cloudscape-design/design-tokens": "^3.0.35",
     "@cloudscape-design/global-styles": "^1.0.7",
