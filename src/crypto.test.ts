@@ -19,8 +19,16 @@ describe('test encryptSecret and decryptSecret', () => {
           "method": "aws_AES256_GCM_IV12_TAG16_NO_PADDING",
           "secretValue": "supersecret",
         },
+        {
+          "version": "3",
+          "method": "aws_AES256_GCM_IV12_TAG16_NO_PADDING",
+          "secretValue": "supersecret",
+        },
+        {
+          "version": "4",
+          "method": "invalid_method",
+        },
       ]),
-      NEXT_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION: "2",
     };
     originalEnv = process.env;
   });
@@ -43,22 +51,38 @@ describe('test encryptSecret and decryptSecret', () => {
     expect(plaintext).toBe(expectedPlaintext);
   });
 
-  it('should fail to encrypt and decrypt when version does not exist', async () => {
+  it('should fail to encrypt and decrypt when encryption version does not exist', async () => {
     expect(async () => {
       const plaintext = "some-secret";
-      await decryptSecret(plaintext, "3");
+      await encryptSecret(plaintext, "0");
     }).rejects.toThrow();
     expect(async () => {
       const ciphertext = "some-cipher";
-      await decryptSecret(ciphertext, "3");
+      await decryptSecret(ciphertext, "0");
     }).rejects.toThrow();
   });
 
-  it('should fail to encrypt and decrypt when versions are mismatched', async () => {
-    const expectedPlaintext = "some-secret";
-    const ciphertext = await encryptSecret(expectedPlaintext, "1");
+  it('should fail to encrypt and decrypt when encryption method is invalid', async () => {
     expect(async () => {
-      await decryptSecret(ciphertext, "2");
+      const plaintext = "some-secret";
+      await encryptSecret(plaintext, "4");
+    }).rejects.toThrow();
+    expect(async () => {
+      const ciphertext = "some-cipher";
+      await decryptSecret(ciphertext, "4");
+    }).rejects.toThrow();
+  });
+
+  it('should fail to encrypt and decrypt when encryption key versions are mismatched', async () => {
+    const expectedPlaintext = "some-secret";
+    const ciphertext = await encryptSecret(expectedPlaintext, "2");
+
+    expect(async () => {
+      await decryptSecret(ciphertext, "1");
+    }).rejects.toThrow();
+
+    expect(async () => {
+      await decryptSecret(ciphertext, "3");
     }).rejects.toThrow();
   });
 });
