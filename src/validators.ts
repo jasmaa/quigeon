@@ -5,9 +5,17 @@ const requestNameRe = new RegExp(`^${requestNameReText}$`);
 const collectionNameRe = new RegExp(`^${collectionNameReText}$`);
 
 export function validateCollectionName(name: string) {
-  return collectionNameRe.test(name);
+  const trimmedName = name.trim();
+  if (name !== trimmedName) {
+    return false;
+  }
+  return collectionNameRe.test(trimmedName);
 }
 
 export function validateRequestName(name: string) {
-  return requestNameRe.test(name);
+  const trimmedName = name.trim();
+  if (name !== trimmedName) {
+    return false;
+  }
+  return requestNameRe.test(trimmedName);
 }

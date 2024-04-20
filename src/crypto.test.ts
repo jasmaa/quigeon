@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { decryptSecret, encryptSecret } from './crypto';
 
-describe('crypto tests', () => {
+describe('test encryptSecret and decryptSecret', () => {
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
