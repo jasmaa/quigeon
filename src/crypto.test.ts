@@ -8,7 +8,7 @@ describe('test encryptSecret and decryptSecret', () => {
     jest.resetModules();
     process.env = {
       NODE_ENV: "production",
-      NEXT_PUBLIC_ENCRYPTION_KEY_SECRETS: JSON.stringify([
+      VITE_PUBLIC_ENCRYPTION_KEY_SECRETS: JSON.stringify([
         {
           "version": "1",
           "method": "custom_aes-256-ctr",

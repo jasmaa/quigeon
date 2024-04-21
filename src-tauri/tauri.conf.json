@@ -1,10 +1,11 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "npm run build && npm run export",
-    "beforeDevCommand": "npm run dev",
-    "devPath": "http://localhost:3000",
-    "distDir": "../out"
+    "beforeDevCommand": "yarn dev",
+    "beforeBuildCommand": "yarn build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "quigeon",
