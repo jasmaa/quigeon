@@ -1,6 +1,5 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 import { generateAwscurl, generateVariableSubsitutedRequest, getDefaultCollectionDisplay, getDefaultEnvironment, getDefaultRequest, getDefaultRequestDisplay } from "./generators";
-import { Request } from "./interfaces";
 
 describe("test getDefaultRequest", () => {
   it("should generate default", () => {

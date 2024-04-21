@@ -1,9 +1,9 @@
-import { webcrypto } from 'node:crypto';
-import { TextEncoder, TextDecoder } from 'util';
+import { Crypto } from "@peculiar/webcrypto";
+import { TextEncoder, TextDecoder } from 'fastestsmallesttextencoderdecoder';
 
 Object.defineProperties(global, {
   'crypto': {
-    value: webcrypto,
+    value: new Crypto(),
   },
   TextDecoder: {
     value: TextDecoder,
