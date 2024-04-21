@@ -57,44 +57,46 @@ export default function RequestContainer({
     <Container header={
       <SpaceBetween size="xxxs" direction="vertical">
         {requestDisplay.collection && (
-          <TextContent>
-            <h5>{requestDisplay.collection.name}</h5>
-          </TextContent>
+          <>
+            <TextContent>
+              <h5>{requestDisplay.collection.name}</h5>
+            </TextContent>
+            {
+              isEditingName
+                ? (
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const isValid = validateRequestName(pendingName);
+                    setIsPendingNameValid(isValid);
+                    if (isValid) {
+                      const updatedRequestDisplay = structuredClone(requestDisplay);
+                      updatedRequestDisplay.request.name = pendingName;
+                      onChangeRequestDisplay(updatedRequestDisplay);
+                      setIsEditingName(!isEditingName);
+                    }
+                  }}>
+                    <SpaceBetween size="m" direction="horizontal">
+                      <Input value={pendingName} invalid={!isPendingNameValid} autoFocus onChange={({ detail }) => {
+                        setPendingName(detail.value);
+                      }} />
+                      <Button iconName="check" variant="icon" />
+                    </SpaceBetween>
+                  </form>
+                )
+                : (
+                  <SpaceBetween size="m" direction="horizontal">
+                    <Header variant="h2">{name}</Header>
+                    <Button iconName="edit" variant="icon" onClick={
+                      () => {
+                        setPendingName(name);
+                        setIsEditingName(!isEditingName);
+                      }
+                    } />
+                  </SpaceBetween>
+                )
+            }
+          </>
         )}
-        {
-          isEditingName
-            ? (
-              <form onSubmit={(e) => {
-                e.preventDefault();
-                const isValid = validateRequestName(pendingName);
-                setIsPendingNameValid(isValid);
-                if (isValid) {
-                  const updatedRequestDisplay = structuredClone(requestDisplay);
-                  updatedRequestDisplay.request.name = pendingName;
-                  onChangeRequestDisplay(updatedRequestDisplay);
-                  setIsEditingName(!isEditingName);
-                }
-              }}>
-                <SpaceBetween size="m" direction="horizontal">
-                  <Input value={pendingName} invalid={!isPendingNameValid} autoFocus onChange={({ detail }) => {
-                    setPendingName(detail.value);
-                  }} />
-                  <Button iconName="check" variant="icon" />
-                </SpaceBetween>
-              </form>
-            )
-            : (
-              <SpaceBetween size="m" direction="horizontal">
-                <Header variant="h2">{name}</Header>
-                <Button iconName="edit" variant="icon" onClick={
-                  () => {
-                    setPendingName(name);
-                    setIsEditingName(!isEditingName);
-                  }
-                } />
-              </SpaceBetween>
-            )
-        }
       </SpaceBetween>
     }>
       <form onSubmit={(e) => {

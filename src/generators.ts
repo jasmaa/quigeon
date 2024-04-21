@@ -6,7 +6,6 @@ export function getDefaultRequest(): Request {
   return {
     id: generateId(),
     name: "My Request",
-    collectionId: "",
     accessKey: "",
     secretKey: "",
     sessionToken: "",

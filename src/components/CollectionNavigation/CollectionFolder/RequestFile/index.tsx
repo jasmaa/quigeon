@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { getDefaultRequestDisplay } from "@quigeon/generators";
 import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
 import { getOrCreateStore } from "@quigeon/store";
 import { validateRequestName } from "@quigeon/validators";
 import { Button, Input, SpaceBetween } from "@cloudscape-design/components";
-import { useState } from "react";
 
 export default function RequestFile({
   collectionDisplayIdx,

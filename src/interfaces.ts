@@ -26,8 +26,8 @@ export interface RequestHeader {
 
 export interface Request {
   id: string;
+  collectionId?: string;
   name: string;
-  collectionId: string;
   accessKey: string;
   secretKey: string;
   sessionToken: string;
