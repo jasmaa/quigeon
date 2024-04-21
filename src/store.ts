@@ -2,7 +2,7 @@ import Database from "tauri-plugin-sql-api";
 import { Collection, Environment, Request, Secret, Variable } from "./interfaces";
 import { decryptSecret, encryptSecret } from "./crypto";
 
-const version = process.env.NEXT_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION!;
+const version = import.meta.env.VITE_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION!;
 
 class Store {
   private path: string;
