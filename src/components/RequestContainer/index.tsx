@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, Textarea, TextContent, FormField, ColumnLayout, CodeEditor } from "@cloudscape-design/components";
+import React, { useEffect, useState } from "react";
+import { Button, SpaceBetween, Grid, Input, Select, Container, Header, Tabs, TextContent, FormField, ColumnLayout } from "@cloudscape-design/components";
 import RequestHeaderEditor from "@quigeon/components/RequestHeaderEditor";
 import { RequestDisplay, Request, CollectionDisplay } from "@quigeon/interfaces";
 import { validateRequestName } from "@quigeon/validators";
 import { getOrCreateStore } from "@quigeon/store";
+import { getDefaultRequestDisplay } from "@quigeon/generators";
 import RichInput from "@quigeon/components/RichInput";
 import BodyEditor from "./RequestBodyEditor";
 
@@ -40,6 +41,10 @@ export default function RequestContainer({
   const [pendingName, setPendingName] = useState(name);
   const [isPendingNameValid, setIsPendingNameValid] = useState(true);
 
+  useEffect(() => {
+    setIsEditingName(false);
+  }, [requestDisplay]);
+
   const onChangeRequestDisplay = async (updatedRequestDisplay: RequestDisplay) => {
     setRequestDisplay(updatedRequestDisplay);
 
@@ -58,9 +63,17 @@ export default function RequestContainer({
       <SpaceBetween size="xxxs" direction="vertical">
         {requestDisplay.collection && (
           <>
-            <TextContent>
-              <h5>{requestDisplay.collection.name}</h5>
-            </TextContent>
+            <div style={{ display: "flex" }}>
+              <div style={{ flexGrow: 1, paddingRight: "1em" }}>
+                <TextContent>
+                  <h5>{requestDisplay.collection.name}</h5>
+                </TextContent>
+              </div>
+              <Button iconName="close" variant="icon" onClick={() => {
+                const updatedRequestDisplay = getDefaultRequestDisplay();
+                onChangeRequestDisplay(updatedRequestDisplay);
+              }} />
+            </div>
             {
               isEditingName
                 ? (
