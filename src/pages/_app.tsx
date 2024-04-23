@@ -9,5 +9,7 @@ import "ace-builds/css/theme/dawn.css";
 import "ace-builds/css/theme/tomorrow_night_bright.css";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+  // TODO: bypass lint for now. Upgrade to next@latest
+  const AnyComponent = Component as any;
+  return <AnyComponent {...pageProps} />
 }
