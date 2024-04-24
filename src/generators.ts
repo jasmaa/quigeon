@@ -87,3 +87,35 @@ function subVars(s: string, lookup: Map<string, string>) {
   });
   return chunks.join("");
 }
+
+export function generateAwscurl(request: Request): string {
+  const args = [
+    "awscurl",
+    "-X", `'${request.method}'`,
+    ...(request.body ? ["-d", `'${request.body}'`] : []),
+    ...(request.headers ? request.headers.flatMap((header) => ["-H", `'${header.key}: ${header.value}'`]) : []),
+    ...(request.region ? ["--region", `'${request.region}'`,] : []),
+    ...(request.service ? ["--service", `'${request.service}'`] : []),
+    ...(request.accessKey ? ["--access_key", `'${request.accessKey}'`] : []),
+    ...(request.secretKey ? ["--secret_key", `'${request.secretKey}'`] : []),
+    ...(request.sessionToken ? ["--security_token", `'${request.sessionToken}'`] : []),
+    ...(request.url ? [`'${request.url}'`] : []),
+  ];
+
+  const groupedArgs = [];
+  for (let i = 0; i < args.length; i++) {
+    let v = '';
+    v += args[i];
+    if (args[i].startsWith("-")) {
+      v += ` ${args[i + 1]}`;
+      i += 1;
+    }
+    groupedArgs.push(v);
+  }
+
+  const spacer = "  ";
+  const formattedArgs = groupedArgs.map((v, idx) => idx > 0 ? `${spacer}${v}` : v)
+    .map((v, idx) => idx < groupedArgs.length - 1 ? `${v} \\` : v);
+
+  return formattedArgs.join("\n");
+}

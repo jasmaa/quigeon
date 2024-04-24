@@ -6,14 +6,16 @@ import { getOrCreateStore } from "@quigeon/store";
 import CollectionNavigation from "@quigeon/components/CollectionNavigation";
 import RequestContainer from "@quigeon/components/RequestContainer";
 import ResponseContainer from "@quigeon/components/ResponseContainer";
-import { generateVariableSubsitutedRequest, getDefaultEnvironment, getDefaultRequestDisplay } from "@quigeon/generators";
+import { generateAwscurl, generateVariableSubsitutedRequest, getDefaultEnvironment, getDefaultRequestDisplay } from "@quigeon/generators";
 import VariableEditor from "@quigeon/components/VariableEditor";
+import Highlight from "react-highlight";
 
 export default function Home() {
   const [collectionDisplays, setCollectionDisplays] = useState<CollectionDisplay[]>([]);
   const [requestDisplay, setRequestDisplay] = useState<RequestDisplay>(getDefaultRequestDisplay());
   const [environment, setEnvironment] = useState<Environment>();
   const [isVariableModalVisible, setIsVariableModalVisible] = useState(false);
+  const [isExportModalVisible, setIsExportModalVisible] = useState(false);
   const [isSendingRequest, setIsSendingRequest] = useState(false);
   const [response, setResponse] = useState<ResponsePayload>();
   const [responseErrorText, setResponseErrorText] = useState("");
@@ -122,6 +124,21 @@ export default function Home() {
           }}
         />
       </Modal>
+      <Modal
+        visible={isExportModalVisible}
+        onDismiss={() => setIsExportModalVisible(false)}
+        header={<Header variant="h2">Export</Header>}
+      >
+        <Highlight className="bash">
+          {
+            generateAwscurl(
+              environment
+                ? generateVariableSubsitutedRequest((requestDisplay.request), environment.variables)
+                : requestDisplay.request
+            )
+          }
+        </Highlight>
+      </Modal>
       <Box margin="s">
         <div style={{ display: "flex" }}>
           <div style={{ paddingRight: "1em" }}>
@@ -154,9 +171,12 @@ export default function Home() {
             </SpaceBetween>
           </div>
           <div>
-            <SpaceBetween size="m" direction="vertical">
+            <SpaceBetween size="s" direction="vertical">
               <Button iconName="key" variant="icon" onClick={(e) => {
                 setIsVariableModalVisible(true);
+              }} />
+              <Button iconName="download" variant="icon" onClick={(e) => {
+                setIsExportModalVisible(true);
               }} />
             </SpaceBetween>
           </div>

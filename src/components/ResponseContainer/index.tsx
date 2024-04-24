@@ -1,8 +1,7 @@
-import { useEffect } from "react";
 import { Badge, Button, SpaceBetween, Container, Header, Spinner, Flashbar } from "@cloudscape-design/components";
-import hljs from "highlight.js";
 import * as beautify from "js-beautify";
 import { ResponsePayload } from "@quigeon/interfaces";
+import Highlight from "react-highlight";
 
 enum PayloadType {
   JSON,
@@ -21,10 +20,6 @@ export default function ResponseContainer({
   errorText: string
   onCancel: () => void
 }) {
-
-  useEffect(() => {
-    hljs.highlightAll();
-  }, [response]);
 
   const getPayloadType = (responsePayload: ResponsePayload) => {
     const { headers, text } = responsePayload;
@@ -117,11 +112,11 @@ export default function ResponseContainer({
                       <Badge color="blue">Time: {response.timeMs}ms</Badge>
                       <Badge color="blue">Size: {response.sizeBytes}B</Badge>
                     </SpaceBetween>
-                    <pre style={{ whiteSpace: "pre-wrap", maxWidth: "60vw" }}>
-                      <code className={getHighlightClassName(response)}>{
-                        getBeautifiedText(response)
-                      }</code>
-                    </pre>
+                    <div style={{ maxWidth: "60vw" }}>
+                      <Highlight className={getHighlightClassName(response)}>
+                        {getBeautifiedText(response)}
+                      </Highlight>
+                    </div>
                   </>
                 )
               }
