@@ -14,6 +14,9 @@
     "allowlist": {
       "dialog": {
         "confirm": true
+      },
+      "shell": {
+        "open": true
       }
     },
     "bundle": {

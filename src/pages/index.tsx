@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { Box, Button, Header, Modal, SpaceBetween } from "@cloudscape-design/components";
+import { Box, Button, Header, Link, Modal, SpaceBetween, TextContent } from "@cloudscape-design/components";
 import { Request, ResponsePayload, CollectionDisplay, RequestDisplay, Environment } from "@quigeon/interfaces";
 import { getOrCreateStore } from "@quigeon/store";
 import CollectionNavigation from "@quigeon/components/CollectionNavigation";
@@ -8,7 +8,7 @@ import RequestContainer from "@quigeon/components/RequestContainer";
 import ResponseContainer from "@quigeon/components/ResponseContainer";
 import { generateAwscurl, generateVariableSubsitutedRequest, getDefaultEnvironment, getDefaultRequestDisplay } from "@quigeon/generators";
 import VariableEditor from "@quigeon/components/VariableEditor";
-import Highlight from "react-highlight";
+import CodeBlock from "@quigeon/components/CodeBlock";
 
 export default function Home() {
   const [collectionDisplays, setCollectionDisplays] = useState<CollectionDisplay[]>([]);
@@ -108,7 +108,12 @@ export default function Home() {
       <Modal
         visible={isVariableModalVisible}
         onDismiss={() => setIsVariableModalVisible(false)}
-        header={<Header variant="h2">Environment Variables</Header>}
+        header={
+          <Header
+            variant="h2"
+            description="Variables for your default environment."
+          >Environment Variables</Header>
+        }
       >
         <VariableEditor
           variables={environment?.variables ?? []}
@@ -127,17 +132,30 @@ export default function Home() {
       <Modal
         visible={isExportModalVisible}
         onDismiss={() => setIsExportModalVisible(false)}
-        header={<Header variant="h2">Export</Header>}
+        header={
+          <Header
+            variant="h2"
+            description={
+              <TextContent>
+                Exports request as an awscurl command. <Link external href="https://github.com/okigan/awscurl">Learn more</Link>
+              </TextContent>
+            }
+          >
+            Export request
+          </Header>
+        }
       >
-        <Highlight className="bash">
-          {
+        <CodeBlock
+          code={
             generateAwscurl(
               environment
                 ? generateVariableSubsitutedRequest((requestDisplay.request), environment.variables)
                 : requestDisplay.request
             )
           }
-        </Highlight>
+          language="bash"
+          copyEnabled
+        />
       </Modal>
       <Box margin="s">
         <div style={{ display: "flex" }}>

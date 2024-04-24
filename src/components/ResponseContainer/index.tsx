@@ -1,7 +1,7 @@
 import { Badge, Button, SpaceBetween, Container, Header, Spinner, Flashbar } from "@cloudscape-design/components";
 import * as beautify from "js-beautify";
 import { ResponsePayload } from "@quigeon/interfaces";
-import Highlight from "react-highlight";
+import CodeBlock from "@quigeon/components/CodeBlock";
 
 enum PayloadType {
   JSON,
@@ -113,9 +113,10 @@ export default function ResponseContainer({
                       <Badge color="blue">Size: {response.sizeBytes}B</Badge>
                     </SpaceBetween>
                     <div style={{ maxWidth: "60vw" }}>
-                      <Highlight className={getHighlightClassName(response)}>
-                        {getBeautifiedText(response)}
-                      </Highlight>
+                      <CodeBlock
+                        code={getBeautifiedText(response)}
+                        language={getHighlightClassName(response)}
+                      />
                     </div>
                   </>
                 )
