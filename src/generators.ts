@@ -1,6 +1,11 @@
 import { CollectionDisplay, Environment, Request, RequestDisplay, Variable } from "./interfaces";
-import { generateId } from "./store";
 import { parseTextNodes } from "./parsing";
+
+const crypto = require('crypto');
+
+function generateId() {
+  return crypto.randomBytes(16).toString("hex");
+}
 
 export function getDefaultRequest(): Request {
   return {

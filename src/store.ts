@@ -2,12 +2,7 @@ import Database from "tauri-plugin-sql-api";
 import { Collection, Environment, Request, Secret, Variable } from "./interfaces";
 import { decryptSecret, encryptSecret } from "./crypto";
 
-const crypto = require('crypto');
 const version = process.env.NEXT_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION!;
-
-export function generateId() {
-  return crypto.randomBytes(16).toString("hex");
-}
 
 class Store {
   private path: string;
