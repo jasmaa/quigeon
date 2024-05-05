@@ -28,6 +28,8 @@
   "devDependencies": {
     "@peculiar/webcrypto": "^1.4.6",
     "@tauri-apps/cli": "^1.5.7",
+    "@testing-library/jest-dom": "^6.4.5",
+    "@testing-library/react": "^15.0.6",
     "@types/fastestsmallesttextencoderdecoder": "^1.0.2",
     "@types/js-beautify": "^1.13.3",
     "@types/node": "18.15.0",
