@@ -3,9 +3,10 @@ import {
   CopyToClipboard,
   TextContent,
 } from "@cloudscape-design/components";
+import React from "react";
 import Highlight from "react-highlight";
 
-export default function CodeBlock({
+function CodeBlock({
   code,
   language,
   copyEnabled = false,
@@ -35,3 +36,5 @@ export default function CodeBlock({
     </div>
   );
 }
+
+export default React.memo(CodeBlock);
