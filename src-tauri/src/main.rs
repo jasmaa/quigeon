@@ -6,8 +6,6 @@
 use std::{
     collections::HashMap,
     error::Error,
-    fs::File,
-    io::{Read, Write},
     str::FromStr,
     time::{Instant, SystemTime},
 };
@@ -162,41 +160,10 @@ async fn send_sigv4_cmd(
     }
 }
 
-fn open_file(file_path: String) -> Result<String, Box<dyn Error>> {
-    let mut file = File::open(file_path)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    Ok(contents)
-}
-
-#[tauri::command]
-fn open_file_cmd(file_path: String) -> Result<String, String> {
-    match open_file(file_path) {
-        Ok(res) => Ok(res),
-        Err(err) => Err(err.to_string()),
-    }
-}
-
-fn save_file(file_path: String, blob: String) -> Result<(), Box<dyn Error>> {
-    let mut file = File::create(file_path)?;
-    file.write_all(blob.as_bytes())?;
-    Ok(())
-}
-
-#[tauri::command]
-fn save_file_cmd(file_path: String, blob: String) -> Result<(), String> {
-    match save_file(file_path, blob) {
-        Ok(res) => Ok(res),
-        Err(err) => Err(err.to_string()),
-    }
-}
-
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             send_sigv4_cmd,
-            open_file_cmd,
-            save_file_cmd
         ])
         .plugin(tauri_plugin_sql::Builder::default().build())
         .run(tauri::generate_context!())
