@@ -10,7 +10,7 @@ A desktop app for querying AWS inspired by
 
 Create `.env.local` from `sample.env.local`.
 
-Set a secret value for secret value in `NEXT_PUBLIC_ENCRYPTION_KEY_SECRETS`. For
+Set a secret value for secret value in `VITE_PUBLIC_ENCRYPTION_KEY_SECRETS`. For
 example:
 
 ```json
