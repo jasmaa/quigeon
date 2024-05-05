@@ -80,12 +80,13 @@ function subVars(s: string, lookup: Map<string, string>) {
     switch (textNode.type) {
       case "none":
         return textNode.text;
-      case "var":
+      case "var": {
         const value = lookup.get(textNode.varMetadata!.name);
         if (!value) {
           throw new Error(`${textNode.varMetadata!.name} was not in lookup`);
         }
         return value;
+      }
     }
   });
   return chunks.join("");

@@ -4,6 +4,7 @@ import { decryptSecret, encryptSecret } from "./crypto";
 
 const version = import.meta.env.VITE_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION!;
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 class Store {
   private path: string;
   private db?: Database;

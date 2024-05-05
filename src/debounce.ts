@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function debounce(f: (...args: any) => void, interval: number) {
   let timer: NodeJS.Timeout | null = null;
 

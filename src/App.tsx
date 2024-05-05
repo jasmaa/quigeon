@@ -190,10 +190,10 @@ export default function Home() {
           </div>
           <div>
             <SpaceBetween size="s" direction="vertical">
-              <Button iconName="key" variant="icon" onClick={(e) => {
+              <Button iconName="key" variant="icon" onClick={() => {
                 setIsVariableModalVisible(true);
               }} />
-              <Button iconName="download" variant="icon" onClick={(e) => {
+              <Button iconName="download" variant="icon" onClick={() => {
                 setIsExportModalVisible(true);
               }} />
             </SpaceBetween>
