@@ -5,7 +5,7 @@ import CodeBlock from ".";
 
 describe('test CodeBlock', () => {
   it('renders', () => {
-    const { container, queryByText } = render(
+    const { container } = render(
       <CodeBlock
         code={`{"key": "value"}`}
         language="json"

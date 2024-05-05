@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Header, Container, SpaceBetween, Grid, Box } from "@cloudscape-design/components";
 import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
 import { getOrCreateStore } from "@quigeon/store";
