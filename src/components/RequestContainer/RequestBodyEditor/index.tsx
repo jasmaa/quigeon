@@ -4,7 +4,9 @@ import { CodeEditor, CodeEditorProps } from "@cloudscape-design/components";
 import { RequestDisplay, RequestHeader } from "@quigeon/interfaces";
 
 function getLanguage(headers: RequestHeader[]) {
-  const header = headers.find((header) => header.key.toLowerCase() === "content-type");
+  const header = headers.find(
+    (header) => header.key.toLowerCase() === "content-type",
+  );
   if (!header) {
     return "text";
   } else {
@@ -23,8 +25,10 @@ export default function RequestBodyEditor({
   requestDisplay,
   onChangeRequestDisplay,
 }: {
-  requestDisplay: RequestDisplay
-  onChangeRequestDisplay: (updatedRequestDisplay: RequestDisplay) => Promise<void>
+  requestDisplay: RequestDisplay;
+  onChangeRequestDisplay: (
+    updatedRequestDisplay: RequestDisplay,
+  ) => Promise<void>;
 }) {
   const { request } = requestDisplay;
   const { body, headers } = request;

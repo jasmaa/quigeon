@@ -22,7 +22,7 @@ export function parseTextNodes(s: string) {
       type: "var",
       varMetadata: {
         name: m[1] ?? m[2],
-      }
+      },
     });
     p = q;
   }

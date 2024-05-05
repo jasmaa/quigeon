@@ -1,5 +1,11 @@
 import Database from "tauri-plugin-sql-api";
-import { Collection, Environment, Request, Secret, Variable } from "./interfaces";
+import {
+  Collection,
+  Environment,
+  Request,
+  Secret,
+  Variable,
+} from "./interfaces";
 import { decryptSecret, encryptSecret } from "./crypto";
 
 const version = import.meta.env.VITE_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION!;
@@ -58,19 +64,13 @@ class Store {
   }
 
   async listCollections(): Promise<Collection[]> {
-    const rows = await this.db?.select("SELECT * FROM collections") as any[];
+    const rows = (await this.db?.select("SELECT * FROM collections")) as any[];
     return rows as Collection[];
   }
 
   async deleteCollection(id: string): Promise<void> {
-    await this.db?.execute(
-      `DELETE FROM requests WHERE collectionId=$1`,
-      [id],
-    );
-    await this.db?.execute(
-      `DELETE FROM collections WHERE id=$1`,
-      [id],
-    );
+    await this.db?.execute(`DELETE FROM requests WHERE collectionId=$1`, [id]);
+    await this.db?.execute(`DELETE FROM collections WHERE id=$1`, [id]);
   }
 
   async upsertRequest(request: Request): Promise<Request> {
@@ -79,20 +79,38 @@ class Store {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       ON CONFLICT(id)
       DO UPDATE SET name=$2, collectionId=$3, accessKey=$4, secretKey=$5, sessionToken=$6, region=$7, service=$8, method=$9, url=$10, body=$11, headers=$12`,
-      [request.id, request.name, request.collectionId, request.accessKey, request.secretKey, request.sessionToken, request.region, request.service, request.method, request.url, request.body, request.headers],
+      [
+        request.id,
+        request.name,
+        request.collectionId,
+        request.accessKey,
+        request.secretKey,
+        request.sessionToken,
+        request.region,
+        request.service,
+        request.method,
+        request.url,
+        request.body,
+        request.headers,
+      ],
     );
     return request;
   }
 
   async getRequest(id: string): Promise<Request> {
-    const rows = await this.db?.select("SELECT * FROM requests WHERE id=$1", [id]) as any[];
+    const rows = (await this.db?.select("SELECT * FROM requests WHERE id=$1", [
+      id,
+    ])) as any[];
     const row = rows[0];
     row.headers = JSON.parse(row.headers);
     return row as Request;
   }
 
   async listRequests(collectionId: string): Promise<Request[]> {
-    const rows = await this.db?.select("SELECT * FROM requests WHERE collectionId=$1", [collectionId]) as any[];
+    const rows = (await this.db?.select(
+      "SELECT * FROM requests WHERE collectionId=$1",
+      [collectionId],
+    )) as any[];
     for (const row of rows) {
       row.headers = JSON.parse(row.headers);
     }
@@ -100,16 +118,16 @@ class Store {
   }
 
   async deleteRequest(id: string): Promise<void> {
-    await this.db?.execute(
-      `DELETE FROM requests WHERE id=$1`,
-      [id],
-    );
+    await this.db?.execute(`DELETE FROM requests WHERE id=$1`, [id]);
   }
 
   async upsertEnvironment(environment: Environment): Promise<Environment> {
     const variablesSecret: Secret = {
       version,
-      encryptedValue: await encryptSecret(JSON.stringify(environment.variables), version),
+      encryptedValue: await encryptSecret(
+        JSON.stringify(environment.variables),
+        version,
+      ),
     };
 
     await this.db?.execute(
@@ -123,18 +141,31 @@ class Store {
   }
 
   async getEnvironment(id: string): Promise<Environment> {
-    const rows = await this.db?.select("SELECT * FROM environments WHERE id=$1", [id]) as any[];
+    const rows = (await this.db?.select(
+      "SELECT * FROM environments WHERE id=$1",
+      [id],
+    )) as any[];
     const row = rows[0];
     const variablesSecret = JSON.parse(row.variables) as Secret;
-    row.variables = JSON.parse(await decryptSecret(variablesSecret.encryptedValue, variablesSecret.version)) as Variable[];
+    row.variables = JSON.parse(
+      await decryptSecret(
+        variablesSecret.encryptedValue,
+        variablesSecret.version,
+      ),
+    ) as Variable[];
     return row as Environment;
   }
 
   async listEnvironments(): Promise<Environment[]> {
-    const rows = await this.db?.select("SELECT * FROM environments") as any[];
+    const rows = (await this.db?.select("SELECT * FROM environments")) as any[];
     for (const row of rows) {
       const variablesSecret = JSON.parse(row.variables) as Secret;
-      row.variables = JSON.parse(await decryptSecret(variablesSecret.encryptedValue, variablesSecret.version)) as Variable[];
+      row.variables = JSON.parse(
+        await decryptSecret(
+          variablesSecret.encryptedValue,
+          variablesSecret.version,
+        ),
+      ) as Variable[];
     }
     return rows as Environment[];
   }

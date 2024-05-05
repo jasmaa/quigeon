@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { generateAwscurl, generateVariableSubsitutedRequest, getDefaultCollectionDisplay, getDefaultEnvironment, getDefaultRequest, getDefaultRequestDisplay } from "./generators";
+import {
+  generateAwscurl,
+  generateVariableSubsitutedRequest,
+  getDefaultCollectionDisplay,
+  getDefaultEnvironment,
+  getDefaultRequest,
+  getDefaultRequestDisplay,
+} from "./generators";
 
 describe("test getDefaultRequest", () => {
   it("should generate default", () => {
@@ -18,7 +25,6 @@ describe("test getDefaultRequestDisplay", () => {
     expect(requestDisplay.indices).toBeUndefined();
   });
 });
-
 
 describe("test getDefaultCollectionDisplay", () => {
   it("should generate default", () => {
@@ -65,7 +71,7 @@ describe("test generateVariableSubsitutedRequest", () => {
         value: "$AWS_REGION",
         editable: true,
       },
-    ]
+    ],
   };
 
   it("should subsitute when variables exist", () => {
@@ -121,7 +127,7 @@ describe("test generateVariableSubsitutedRequest", () => {
           value: "us-east-1",
           editable: true,
         },
-      ]
+      ],
     };
 
     expect(subbedRequest).toStrictEqual(expectedSubbedRequest);
@@ -148,7 +154,7 @@ describe("test generateVariableSubsitutedRequest", () => {
     ];
 
     expect(() => {
-      generateVariableSubsitutedRequest(request, variables)
+      generateVariableSubsitutedRequest(request, variables);
     }).toThrowError();
   });
 });
@@ -176,11 +182,10 @@ describe("test generateAwscurlRequest", () => {
         value: "var-example",
         editable: true,
       },
-    ]
+    ],
   };
 
   it("should generate awscurl request", () => {
-
     const awscurlPayload = generateAwscurl(request);
 
     const expectedAwscurlPayload = `awscurl \\
@@ -193,7 +198,7 @@ describe("test generateAwscurlRequest", () => {
   --access_key 'access-key' \\
   --secret_key 'secret-key' \\
   --security_token 'session-token' \\
-  'https://lambda.us-east-1.example.com/2015-03-31/functions'`
+  'https://lambda.us-east-1.example.com/2015-03-31/functions'`;
 
     expect(awscurlPayload).toBe(expectedAwscurlPayload);
   });

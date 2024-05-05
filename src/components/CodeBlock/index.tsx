@@ -1,4 +1,8 @@
-import { Box, CopyToClipboard, TextContent } from "@cloudscape-design/components";
+import {
+  Box,
+  CopyToClipboard,
+  TextContent,
+} from "@cloudscape-design/components";
 import Highlight from "react-highlight";
 
 export default function CodeBlock({
@@ -6,13 +10,13 @@ export default function CodeBlock({
   language,
   copyEnabled = false,
 }: {
-  code: string,
-  language: string,
-  copyEnabled?: boolean,
+  code: string;
+  language: string;
+  copyEnabled?: boolean;
 }) {
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, width: "100%" }}>
+    <div style={{ position: "relative" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
         <Box float="right" margin="xxs">
           {copyEnabled && (
             <CopyToClipboard
@@ -26,10 +30,8 @@ export default function CodeBlock({
         </Box>
       </div>
       <TextContent>
-        <Highlight className={language}>
-          {code}
-        </Highlight>
+        <Highlight className={language}>{code}</Highlight>
       </TextContent>
     </div>
-  )
+  );
 }
