@@ -10,7 +10,7 @@
     "prettier": "prettier src --check",
     "preview": "vite preview",
     "tauri": "tauri",
-    "test": "vitest --config vitest.config.ts"
+    "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
     "@aws-crypto/client-browser": "^4.0.0",
@@ -39,6 +39,7 @@
     "@types/react-dom": "^18.2.25",
     "@types/react-highlight": "^0.12.8",
     "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/coverage-v8": "^1.6.0",
     "eslint": "^9.2.0",
     "fastestsmallesttextencoderdecoder": "^1.0.22",
     "jsdom": "^24.0.0",
