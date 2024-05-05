@@ -15,7 +15,7 @@ jobs:
       - name: Test using Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version: "18"
       - run: yarn install --immutable --immutable-cache --check-cache
       - run: yarn lint
       - run: yarn prettier
