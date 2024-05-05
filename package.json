@@ -9,7 +9,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "tauri": "tauri",
-    "test": "vitest"
+    "test": "vitest --config vitest.config.ts"
   },
   "dependencies": {
     "@aws-crypto/client-browser": "^4.0.0",
