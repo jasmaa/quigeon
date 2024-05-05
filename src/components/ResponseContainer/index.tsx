@@ -1,4 +1,12 @@
-import { Badge, Button, SpaceBetween, Container, Header, Spinner, Flashbar } from "@cloudscape-design/components";
+import {
+  Badge,
+  Button,
+  SpaceBetween,
+  Container,
+  Header,
+  Spinner,
+  Flashbar,
+} from "@cloudscape-design/components";
 import * as beautify from "js-beautify";
 import { ResponsePayload } from "@quigeon/interfaces";
 import CodeBlock from "@quigeon/components/CodeBlock";
@@ -15,12 +23,11 @@ export default function ResponseContainer({
   errorText,
   onCancel,
 }: {
-  response?: ResponsePayload
-  loading?: boolean
-  errorText: string
-  onCancel: () => void
+  response?: ResponsePayload;
+  loading?: boolean;
+  errorText: string;
+  onCancel: () => void;
 }) {
-
   const getPayloadType = (responsePayload: ResponsePayload) => {
     const { headers, text } = responsePayload;
     const contentType = headers["content-type"]?.[0];
@@ -43,7 +50,7 @@ export default function ResponseContainer({
         return PayloadType.UNKNOWN;
       }
     }
-  }
+  };
 
   const getHighlightClassName = (responsePayload: ResponsePayload) => {
     const payloadType = getPayloadType(responsePayload);
@@ -55,7 +62,7 @@ export default function ResponseContainer({
       default:
         return "nohighlight";
     }
-  }
+  };
 
   const getBeautifiedText = (responsePayload: ResponsePayload) => {
     const payloadType = getPayloadType(responsePayload);
@@ -68,7 +75,7 @@ export default function ResponseContainer({
       default:
         return text;
     }
-  }
+  };
 
   const getBadgeColorForStatus = (status: string) => {
     if (status.startsWith("1")) {
@@ -84,52 +91,50 @@ export default function ResponseContainer({
     } else {
       return "grey";
     }
-  }
+  };
 
   return (
     <Container header={<Header variant="h2">Response</Header>}>
-      {
-        !loading
-          ? (
-            <>
-              <Flashbar items={
-                errorText
-                  ? ([
+      {!loading ? (
+        <>
+          <Flashbar
+            items={
+              errorText
+                ? [
                     {
                       header: "Error sending request",
                       type: "error",
                       content: errorText,
-                      id: "error-msg"
-                    }
-                  ])
-                  : []
-              } />
-              {
-                response && (
-                  <>
-                    <SpaceBetween size="s" direction="horizontal">
-                      <Badge color={getBadgeColorForStatus(response.status)}>Status: {response.status}</Badge>
-                      <Badge color="blue">Time: {response.timeMs}ms</Badge>
-                      <Badge color="blue">Size: {response.sizeBytes}B</Badge>
-                    </SpaceBetween>
-                    <div style={{ maxWidth: "60vw" }}>
-                      <CodeBlock
-                        code={getBeautifiedText(response)}
-                        language={getHighlightClassName(response)}
-                      />
-                    </div>
-                  </>
-                )
-              }
+                      id: "error-msg",
+                    },
+                  ]
+                : []
+            }
+          />
+          {response && (
+            <>
+              <SpaceBetween size="s" direction="horizontal">
+                <Badge color={getBadgeColorForStatus(response.status)}>
+                  Status: {response.status}
+                </Badge>
+                <Badge color="blue">Time: {response.timeMs}ms</Badge>
+                <Badge color="blue">Size: {response.sizeBytes}B</Badge>
+              </SpaceBetween>
+              <div style={{ maxWidth: "60vw" }}>
+                <CodeBlock
+                  code={getBeautifiedText(response)}
+                  language={getHighlightClassName(response)}
+                />
+              </div>
             </>
-          )
-          : (
-            <SpaceBetween size="m" direction="horizontal">
-              <Spinner />
-              <Button onClick={onCancel}>Cancel</Button>
-            </SpaceBetween>
-          )
-      }
+          )}
+        </>
+      ) : (
+        <SpaceBetween size="m" direction="horizontal">
+          <Spinner />
+          <Button onClick={onCancel}>Cancel</Button>
+        </SpaceBetween>
+      )}
     </Container>
   );
 }

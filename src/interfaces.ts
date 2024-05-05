@@ -5,12 +5,12 @@ export interface CollectionDisplay {
 }
 
 export interface RequestDisplay {
-  request: Request
-  collection?: Collection
+  request: Request;
+  collection?: Collection;
   indices?: {
-    collectionDisplayIdx: number
-    requestIdx: number
-  }
+    collectionDisplayIdx: number;
+    requestIdx: number;
+  };
 }
 
 export interface Collection {
@@ -19,9 +19,9 @@ export interface Collection {
 }
 
 export interface RequestHeader {
-  key: string,
-  value: string,
-  editable: boolean,
+  key: string;
+  value: string;
+  editable: boolean;
 }
 
 export interface Request {
@@ -48,11 +48,11 @@ export interface ResponsePayload {
 }
 
 export interface TextNode {
-  text: string
-  type: "none" | "var"
+  text: string;
+  type: "none" | "var";
   varMetadata?: {
     name: string;
-  }
+  };
 }
 
 export interface Environment {

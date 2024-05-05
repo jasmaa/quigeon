@@ -1,18 +1,41 @@
 import React, { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { Box, Button, Header, Link, Modal, SpaceBetween, TextContent } from "@cloudscape-design/components";
-import { Request, ResponsePayload, CollectionDisplay, RequestDisplay, Environment } from "@quigeon/interfaces";
+import {
+  Box,
+  Button,
+  Header,
+  Link,
+  Modal,
+  SpaceBetween,
+  TextContent,
+} from "@cloudscape-design/components";
+import {
+  Request,
+  ResponsePayload,
+  CollectionDisplay,
+  RequestDisplay,
+  Environment,
+} from "@quigeon/interfaces";
 import { getOrCreateStore } from "@quigeon/store";
 import CollectionNavigation from "@quigeon/components/CollectionNavigation";
 import RequestContainer from "@quigeon/components/RequestContainer";
 import ResponseContainer from "@quigeon/components/ResponseContainer";
-import { generateAwscurl, generateVariableSubsitutedRequest, getDefaultEnvironment, getDefaultRequestDisplay } from "@quigeon/generators";
+import {
+  generateAwscurl,
+  generateVariableSubsitutedRequest,
+  getDefaultEnvironment,
+  getDefaultRequestDisplay,
+} from "@quigeon/generators";
 import VariableEditor from "@quigeon/components/VariableEditor";
 import CodeBlock from "@quigeon/components/CodeBlock";
 
 export default function Home() {
-  const [collectionDisplays, setCollectionDisplays] = useState<CollectionDisplay[]>([]);
-  const [requestDisplay, setRequestDisplay] = useState<RequestDisplay>(getDefaultRequestDisplay());
+  const [collectionDisplays, setCollectionDisplays] = useState<
+    CollectionDisplay[]
+  >([]);
+  const [requestDisplay, setRequestDisplay] = useState<RequestDisplay>(
+    getDefaultRequestDisplay(),
+  );
   const [environment, setEnvironment] = useState<Environment>();
   const [isVariableModalVisible, setIsVariableModalVisible] = useState(false);
   const [isExportModalVisible, setIsExportModalVisible] = useState(false);
@@ -49,7 +72,7 @@ export default function Home() {
     }
 
     return collectionDisplays;
-  }
+  };
 
   const loadOrCreateDefaultEnvironment = async () => {
     const store = await getOrCreateStore();
@@ -61,7 +84,7 @@ export default function Home() {
     } else {
       return environments[0];
     }
-  }
+  };
 
   const onSendRequest = (request: Request) => {
     // Generate a unique id for this request
@@ -74,11 +97,14 @@ export default function Home() {
 
     (async () => {
       try {
-        const sendableRequest = generateVariableSubsitutedRequest(request, environment!.variables);
-        const res = await invoke('send_sigv4_cmd', {
+        const sendableRequest = generateVariableSubsitutedRequest(
+          request,
+          environment!.variables,
+        );
+        const res = (await invoke("send_sigv4_cmd", {
           ...sendableRequest,
           headers: sendableRequest.headers.filter((header) => header.editable),
-        }) as ResponsePayload;
+        })) as ResponsePayload;
         // Only update if this request is still the current request
         if (pendingRequestId.current === currentRequestId) {
           setResponse(res);
@@ -95,13 +121,13 @@ export default function Home() {
         }
       }
     })();
-  }
+  };
 
   const onCancelSend = () => {
     pendingRequestId.current = undefined;
     setIsSendingRequest(false);
     setResponseErrorText("Request cancelled");
-  }
+  };
 
   return (
     <>
@@ -112,7 +138,9 @@ export default function Home() {
           <Header
             variant="h2"
             description="Variables for your default environment."
-          >Environment Variables</Header>
+          >
+            Environment Variables
+          </Header>
         }
       >
         <VariableEditor
@@ -137,7 +165,10 @@ export default function Home() {
             variant="h2"
             description={
               <TextContent>
-                Exports request as an awscurl command. <Link external href="https://github.com/okigan/awscurl">Learn more</Link>
+                Exports request as an awscurl command.{" "}
+                <Link external href="https://github.com/okigan/awscurl">
+                  Learn more
+                </Link>
               </TextContent>
             }
           >
@@ -146,13 +177,14 @@ export default function Home() {
         }
       >
         <CodeBlock
-          code={
-            generateAwscurl(
-              environment
-                ? generateVariableSubsitutedRequest((requestDisplay.request), environment.variables)
-                : requestDisplay.request
-            )
-          }
+          code={generateAwscurl(
+            environment
+              ? generateVariableSubsitutedRequest(
+                  requestDisplay.request,
+                  environment.variables,
+                )
+              : requestDisplay.request,
+          )}
           language="bash"
           copyEnabled
         />
@@ -190,12 +222,20 @@ export default function Home() {
           </div>
           <div>
             <SpaceBetween size="s" direction="vertical">
-              <Button iconName="key" variant="icon" onClick={() => {
-                setIsVariableModalVisible(true);
-              }} />
-              <Button iconName="download" variant="icon" onClick={() => {
-                setIsExportModalVisible(true);
-              }} />
+              <Button
+                iconName="key"
+                variant="icon"
+                onClick={() => {
+                  setIsVariableModalVisible(true);
+                }}
+              />
+              <Button
+                iconName="download"
+                variant="icon"
+                onClick={() => {
+                  setIsExportModalVisible(true);
+                }}
+              />
             </SpaceBetween>
           </div>
         </div>

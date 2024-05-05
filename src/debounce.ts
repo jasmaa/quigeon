@@ -7,10 +7,7 @@ export function debounce(f: (...args: any) => void, interval: number) {
       clearTimeout(timer);
     }
     return new Promise((resolve) => {
-      timer = setTimeout(
-        () => resolve(f(...args)),
-        interval,
-      );
+      timer = setTimeout(() => resolve(f(...args)), interval);
     });
   };
 }

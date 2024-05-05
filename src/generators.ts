@@ -1,4 +1,10 @@
-import { CollectionDisplay, Environment, Request, RequestDisplay, Variable } from "./interfaces";
+import {
+  CollectionDisplay,
+  Environment,
+  Request,
+  RequestDisplay,
+  Variable,
+} from "./interfaces";
 import { parseTextNodes } from "./parsing";
 
 function generateId() {
@@ -46,12 +52,15 @@ export function getDefaultEnvironment(): Environment {
       {
         name: "",
         value: "",
-      }
+      },
     ],
   };
 }
 
-export function generateVariableSubsitutedRequest(request: Request, variables: Variable[]): Request {
+export function generateVariableSubsitutedRequest(
+  request: Request,
+  variables: Variable[],
+): Request {
   const varLookup = new Map();
   for (const { name, value } of variables) {
     varLookup.set(name, value);
@@ -62,8 +71,10 @@ export function generateVariableSubsitutedRequest(request: Request, variables: V
     headers: request.headers.map((header) => {
       return {
         ...header,
-        value: header.editable ? subVars(header.value, varLookup) : header.value,
-      }
+        value: header.editable
+          ? subVars(header.value, varLookup)
+          : header.value,
+      };
     }),
     accessKey: subVars(request.accessKey, varLookup),
     secretKey: subVars(request.secretKey, varLookup),
@@ -95,20 +106,28 @@ function subVars(s: string, lookup: Map<string, string>) {
 export function generateAwscurl(request: Request): string {
   const args = [
     "awscurl",
-    "-X", `'${request.method}'`,
+    "-X",
+    `'${request.method}'`,
     ...(request.body ? ["-d", `'${request.body}'`] : []),
-    ...(request.headers ? request.headers.flatMap((header) => ["-H", `'${header.key}: ${header.value}'`]) : []),
-    ...(request.region ? ["--region", `'${request.region}'`,] : []),
+    ...(request.headers
+      ? request.headers.flatMap((header) => [
+          "-H",
+          `'${header.key}: ${header.value}'`,
+        ])
+      : []),
+    ...(request.region ? ["--region", `'${request.region}'`] : []),
     ...(request.service ? ["--service", `'${request.service}'`] : []),
     ...(request.accessKey ? ["--access_key", `'${request.accessKey}'`] : []),
     ...(request.secretKey ? ["--secret_key", `'${request.secretKey}'`] : []),
-    ...(request.sessionToken ? ["--security_token", `'${request.sessionToken}'`] : []),
+    ...(request.sessionToken
+      ? ["--security_token", `'${request.sessionToken}'`]
+      : []),
     ...(request.url ? [`'${request.url}'`] : []),
   ];
 
   const groupedArgs = [];
   for (let i = 0; i < args.length; i++) {
-    let v = '';
+    let v = "";
     v += args[i];
     if (args[i].startsWith("-")) {
       v += ` ${args[i + 1]}`;
@@ -118,8 +137,9 @@ export function generateAwscurl(request: Request): string {
   }
 
   const spacer = "  ";
-  const formattedArgs = groupedArgs.map((v, idx) => idx > 0 ? `${spacer}${v}` : v)
-    .map((v, idx) => idx < groupedArgs.length - 1 ? `${v} \\` : v);
+  const formattedArgs = groupedArgs
+    .map((v, idx) => (idx > 0 ? `${spacer}${v}` : v))
+    .map((v, idx) => (idx < groupedArgs.length - 1 ? `${v} \\` : v));
 
   return formattedArgs.join("\n");
 }

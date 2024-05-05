@@ -1,12 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { parseTextNodes } from "./parsing";
 
-describe('test parseTextNodes', () => {
+describe("test parseTextNodes", () => {
   it.each([
-    [
-      "",
-      []
-    ],
+    ["", []],
     [
       "a",
       [
@@ -14,7 +11,7 @@ describe('test parseTextNodes', () => {
           type: "none",
           text: "a",
         },
-      ]
+      ],
     ],
     [
       "https://example.com",
@@ -23,7 +20,7 @@ describe('test parseTextNodes', () => {
           type: "none",
           text: "https://example.com",
         },
-      ]
+      ],
     ],
     [
       "https://example.com/$PATH",
@@ -39,7 +36,7 @@ describe('test parseTextNodes', () => {
             name: "PATH",
           },
         },
-      ]
+      ],
     ],
     [
       "https://example.com/$PATH/123",
@@ -59,7 +56,7 @@ describe('test parseTextNodes', () => {
           type: "none",
           text: "/123",
         },
-      ]
+      ],
     ],
     [
       "https://example.com/${PATH}",
@@ -75,7 +72,7 @@ describe('test parseTextNodes', () => {
             name: "PATH",
           },
         },
-      ]
+      ],
     ],
     [
       "https://example.com/$PATH/123/$SUBPATH",
@@ -102,7 +99,7 @@ describe('test parseTextNodes', () => {
             name: "SUBPATH",
           },
         },
-      ]
+      ],
     ],
     [
       "$a$b$c",
@@ -128,7 +125,7 @@ describe('test parseTextNodes', () => {
             name: "c",
           },
         },
-      ]
+      ],
     ],
     [
       "$$VAR$",
@@ -148,7 +145,7 @@ describe('test parseTextNodes', () => {
           type: "none",
           text: "$",
         },
-      ]
+      ],
     ],
     [
       "$!abc123",
@@ -157,9 +154,9 @@ describe('test parseTextNodes', () => {
           type: "none",
           text: "$!abc123",
         },
-      ]
+      ],
     ],
-  ])('should parse text nodes when text=%s', (text, expectedTextNodes) => {
+  ])("should parse text nodes when text=%s", (text, expectedTextNodes) => {
     const textNodes = parseTextNodes(text);
     expect(textNodes).toStrictEqual(expectedTextNodes);
   });
