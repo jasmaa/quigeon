@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import {
+  Alert,
   Box,
   Button,
   Header,
@@ -43,6 +44,8 @@ export default function Home() {
   const [response, setResponse] = useState<ResponsePayload>();
   const [responseErrorText, setResponseErrorText] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [awscurlCodeSnippet, setAwscurlCodeSnippet] = useState<string>("");
+  const [awscurlErrorMessage, setAwscurlErrorMessage] = useState<string>();
 
   const pendingRequestId = useRef<string>();
 
@@ -54,6 +57,25 @@ export default function Home() {
       setEnvironment(environment);
     })();
   }, []);
+
+  useEffect(() => {
+    setAwscurlErrorMessage(undefined);
+    try {
+      const updatedAwscurlCodeSnippet = generateAwscurl(
+        environment
+          ? generateVariableSubsitutedRequest(
+            requestDisplay.request,
+            environment.variables,
+          )
+          : requestDisplay.request,
+      );
+      setAwscurlCodeSnippet(updatedAwscurlCodeSnippet);
+    } catch (e) {
+      if (e instanceof Error) {
+        setAwscurlErrorMessage(`awscurl code snippet could not be displayed: ${e.message}`);
+      }
+    }
+  }, [requestDisplay.request, environment]);
 
   const loadCollectionDisplays = async () => {
     const store = await getOrCreateStore();
@@ -176,18 +198,15 @@ export default function Home() {
           </Header>
         }
       >
-        <CodeBlock
-          code={generateAwscurl(
-            environment
-              ? generateVariableSubsitutedRequest(
-                  requestDisplay.request,
-                  environment.variables,
-                )
-              : requestDisplay.request,
-          )}
-          language="bash"
-          copyEnabled
-        />
+        {
+          awscurlErrorMessage
+            ? <Alert type="error">{awscurlErrorMessage}</Alert>
+            : <CodeBlock
+              code={awscurlCodeSnippet}
+              language="bash"
+              copyEnabled
+            />
+        }
       </Modal>
       <Box margin="s">
         <div style={{ display: "flex" }}>
