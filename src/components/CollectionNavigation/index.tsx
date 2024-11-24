@@ -8,7 +8,7 @@ import {
   Box,
 } from "@cloudscape-design/components";
 import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
-import { getOrCreateStore } from "@quigeon/store";
+import { getOrCreateStore } from "@quigeon/db";
 import { getDefaultCollectionDisplay } from "@quigeon/generators";
 import CollectionFolder from "./CollectionFolder";
 

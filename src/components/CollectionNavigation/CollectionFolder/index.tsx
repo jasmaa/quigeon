@@ -6,7 +6,7 @@ import {
   SpaceBetween,
 } from "@cloudscape-design/components";
 import { validateCollectionName } from "@quigeon/validators";
-import { getOrCreateStore } from "@quigeon/store";
+import { getOrCreateStore } from "@quigeon/db";
 import {
   CollectionDisplay,
   RequestDisplay,

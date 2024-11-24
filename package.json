@@ -17,6 +17,7 @@
     "@cloudscape-design/components": "^3.0.225",
     "@cloudscape-design/design-tokens": "^3.0.35",
     "@cloudscape-design/global-styles": "^1.0.7",
+    "@reduxjs/toolkit": "^2.3.0",
     "@tauri-apps/api": "^1.2.0",
     "ace-builds": "^1.33.0",
     "highlight.js": "^11.7.0",
@@ -24,6 +25,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-highlight": "^0.15.0",
+    "react-redux": "^9.1.2",
     "tauri-plugin-sql-api": "https://github.com/tauri-apps/tauri-plugin-sql#v1"
   },
   "devDependencies": {

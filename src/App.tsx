@@ -17,7 +17,7 @@ import {
   RequestDisplay,
   Environment,
 } from "@quigeon/interfaces";
-import { getOrCreateStore } from "@quigeon/store";
+import { getOrCreateStore } from "@quigeon/db";
 import CollectionNavigation from "@quigeon/components/CollectionNavigation";
 import RequestContainer from "@quigeon/components/RequestContainer";
 import ResponseContainer from "@quigeon/components/ResponseContainer";
@@ -29,8 +29,21 @@ import {
 } from "@quigeon/generators";
 import VariableEditor from "@quigeon/components/VariableEditor";
 import CodeBlock from "@quigeon/components/CodeBlock";
+import { connect } from "react-redux";
+import { loadCollectionDisplays } from "./collectionDisplaysSlice";
+import { AppDispatch, RootState } from "./store";
 
-export default function Home() {
+interface StateProps {
+  collectionDisplays: CollectionDisplay[];
+}
+
+interface DispatchProps {
+  loadCollectionDisplays: () => Promise<void>;
+}
+
+type Props = StateProps & DispatchProps;
+
+function App(props: Props) {
   const [collectionDisplays, setCollectionDisplays] = useState<
     CollectionDisplay[]
   >([]);
@@ -50,12 +63,13 @@ export default function Home() {
   const pendingRequestId = useRef<string>();
 
   useEffect(() => {
-    (async () => {
-      const collectionDisplays = await loadCollectionDisplays();
-      setCollectionDisplays(collectionDisplays);
-      const environment = await loadOrCreateDefaultEnvironment();
-      setEnvironment(environment);
-    })();
+    // (async () => {
+    //   const collectionDisplays = await loadCollectionDisplays();
+    //   setCollectionDisplays(collectionDisplays);
+    //   const environment = await loadOrCreateDefaultEnvironment();
+    //   setEnvironment(environment);
+    // })();
+    props.loadCollectionDisplays();
   }, []);
 
   useEffect(() => {
@@ -64,9 +78,9 @@ export default function Home() {
       const updatedAwscurlCodeSnippet = generateAwscurl(
         environment
           ? generateVariableSubsitutedRequest(
-              requestDisplay.request,
-              environment.variables,
-            )
+            requestDisplay.request,
+            environment.variables,
+          )
           : requestDisplay.request,
       );
       setAwscurlCodeSnippet(updatedAwscurlCodeSnippet);
@@ -78,25 +92,6 @@ export default function Home() {
       }
     }
   }, [requestDisplay.request, environment]);
-
-  const loadCollectionDisplays = async () => {
-    const store = await getOrCreateStore();
-
-    const collectionDisplays = [];
-    const collections = await store.listCollections();
-
-    for (const collection of collections) {
-      const requests = await store.listRequests(collection.id);
-      const collectionDisplay = {
-        collection,
-        requests,
-        isOpen: false,
-      };
-      collectionDisplays.push(collectionDisplay);
-    }
-
-    return collectionDisplays;
-  };
 
   const loadOrCreateDefaultEnvironment = async () => {
     const store = await getOrCreateStore();
@@ -211,7 +206,7 @@ export default function Home() {
           <div style={{ paddingRight: "1em" }}>
             <SpaceBetween size="l" direction="vertical">
               <CollectionNavigation
-                collectionDisplays={collectionDisplays}
+                collectionDisplays={props.collectionDisplays}
                 setCollectionDisplays={setCollectionDisplays}
                 requestDisplay={requestDisplay}
                 setRequestDisplay={setRequestDisplay}
@@ -260,3 +255,17 @@ export default function Home() {
     </>
   );
 }
+
+const mapStateToProps = (state: RootState) => {
+  return {
+    collectionDisplays: state.collectionDisplays.value,
+  };
+}
+
+const mapDispatchToProps = (dispatch: AppDispatch) => {
+  return {
+    loadCollectionDisplays: () => dispatch(loadCollectionDisplays())
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

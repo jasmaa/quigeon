@@ -19,7 +19,7 @@ import {
   CollectionDisplay,
 } from "@quigeon/interfaces";
 import { validateRequestName } from "@quigeon/validators";
-import { getOrCreateStore } from "@quigeon/store";
+import { getOrCreateStore } from "@quigeon/db";
 import { getDefaultRequestDisplay } from "@quigeon/generators";
 import RichInput from "@quigeon/components/RichInput";
 import BodyEditor from "./RequestBodyEditor";
