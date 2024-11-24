@@ -64,15 +64,17 @@ export default function Home() {
       const updatedAwscurlCodeSnippet = generateAwscurl(
         environment
           ? generateVariableSubsitutedRequest(
-            requestDisplay.request,
-            environment.variables,
-          )
+              requestDisplay.request,
+              environment.variables,
+            )
           : requestDisplay.request,
       );
       setAwscurlCodeSnippet(updatedAwscurlCodeSnippet);
     } catch (e) {
       if (e instanceof Error) {
-        setAwscurlErrorMessage(`awscurl code snippet could not be displayed: ${e.message}`);
+        setAwscurlErrorMessage(
+          `awscurl code snippet could not be displayed: ${e.message}`,
+        );
       }
     }
   }, [requestDisplay.request, environment]);
@@ -198,15 +200,11 @@ export default function Home() {
           </Header>
         }
       >
-        {
-          awscurlErrorMessage
-            ? <Alert type="error">{awscurlErrorMessage}</Alert>
-            : <CodeBlock
-              code={awscurlCodeSnippet}
-              language="bash"
-              copyEnabled
-            />
-        }
+        {awscurlErrorMessage ? (
+          <Alert type="error">{awscurlErrorMessage}</Alert>
+        ) : (
+          <CodeBlock code={awscurlCodeSnippet} language="bash" copyEnabled />
+        )}
       </Modal>
       <Box margin="s">
         <div style={{ display: "flex" }}>
