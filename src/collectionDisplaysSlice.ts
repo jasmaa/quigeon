@@ -19,6 +19,17 @@ export const collectionDisplaysSlice = createSlice({
     setCollectionDisplays: (state, action: PayloadAction<{ collectionDisplays: CollectionDisplay[] }>) => {
       state.value = action.payload.collectionDisplays;
     },
+    appendCollectionDisplay: (state, action: PayloadAction<{ collectionDisplay: CollectionDisplay }>) => {
+      state.value = [
+        ...state.value,
+        action.payload.collectionDisplay,
+      ];
+    },
+    removeCollectionDisplay: (state, action: PayloadAction<{ collectionDisplayIdx: number }>) => {
+      const updatedCollectionDisplays = [...state.value];
+      updatedCollectionDisplays.splice(action.payload.collectionDisplayIdx, 1);
+      state.value = updatedCollectionDisplays;
+    },
     createRequest: (state, action: PayloadAction<{ collectionIdx: number, request: Request }>) => { },
     updateRequest: () => { },
     deleteRequest: () => { },
@@ -51,22 +62,16 @@ export function loadCollectionDisplays() {
 }
 
 export function createDefaultCollectionDisplay() {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
-    const collectionDisplays = getState().collectionDisplays.value;
-
+  return async (dispatch: AppDispatch) => {
     const addedCollectionDisplay = getDefaultCollectionDisplay();
 
     const store = await getOrCreateStore();
     await store.upsertCollection(addedCollectionDisplay.collection);
 
-    const updatedCollectionDisplays = [
-      ...collectionDisplays,
-      addedCollectionDisplay,
-    ];
     dispatch({
-      type: collectionDisplaysSlice.actions.setCollectionDisplays.type,
+      type: collectionDisplaysSlice.actions.appendCollectionDisplay.type,
       payload: {
-        collectionDisplays: updatedCollectionDisplays,
+        collectionDisplay: addedCollectionDisplay,
       }
     });
   };
@@ -86,12 +91,10 @@ export function deleteCollectionDisplay(collectionDisplayIdx: number) {
     const collectionId = collectionDisplays[collectionDisplayIdx].collection.id;
     await store.deleteCollection(collectionId);
 
-    const updatedCollectionDisplays = [...collectionDisplays];
-    updatedCollectionDisplays.splice(collectionDisplayIdx, 1);
     dispatch({
-      type: collectionDisplaysSlice.actions.setCollectionDisplays.type,
+      type: collectionDisplaysSlice.actions.removeCollectionDisplay.type,
       payload: {
-        collectionDisplays: updatedCollectionDisplays,
+        collectionDisplayIdx,
       }
     });
   };
