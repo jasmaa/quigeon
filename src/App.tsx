@@ -205,14 +205,7 @@ function App(props: Props) {
         <div style={{ display: "flex" }}>
           <div style={{ paddingRight: "1em" }}>
             <SpaceBetween size="l" direction="vertical">
-              <CollectionNavigation
-                collectionDisplays={props.collectionDisplays}
-                setCollectionDisplays={setCollectionDisplays}
-                requestDisplay={requestDisplay}
-                setRequestDisplay={setRequestDisplay}
-                isDrawerOpen={isDrawerOpen}
-                setIsDrawerOpen={setIsDrawerOpen}
-              />
+              <CollectionNavigation isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
             </SpaceBetween>
           </div>
           <div style={{ flexGrow: 1, paddingRight: "1em" }}>

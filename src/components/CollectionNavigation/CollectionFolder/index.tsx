@@ -14,23 +14,33 @@ import {
 } from "@quigeon/interfaces";
 import {
   getDefaultRequest,
-  getDefaultRequestDisplay,
 } from "@quigeon/generators";
 import RequestFile from "./RequestFile";
+import { AppDispatch, RootState } from "@quigeon/store";
+import { deleteCollectionDisplay } from "@quigeon/collectionDisplaysSlice";
+import { connect } from "react-redux";
+import { requestDisplaySlice } from "@quigeon/requestDisplaySlice";
 
-export default function CollectionFolder({
-  collectionDisplayIdx,
-  collectionDisplays,
-  setCollectionDisplays,
-  requestDisplay,
-  setRequestDisplay,
-}: {
-  collectionDisplayIdx: number;
+interface StateProps {
   collectionDisplays: CollectionDisplay[];
-  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
   requestDisplay: RequestDisplay;
-  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
-}) {
+}
+
+interface DispatchProps {
+  deleteCollectionDisplay: (collectionDisplayIdx: number) => Promise<void>;
+  resetRequestDisplay: () => void;
+}
+
+interface OwnProps {
+  collectionDisplayIdx: number;
+}
+
+type Props = StateProps & DispatchProps & OwnProps;
+
+function CollectionFolder(props: Props) {
+
+  const { collectionDisplays, collectionDisplayIdx, requestDisplay, deleteCollectionDisplay, resetRequestDisplay } = props;
+
   const { collection, requests, isOpen } =
     collectionDisplays[collectionDisplayIdx];
 
@@ -44,7 +54,7 @@ export default function CollectionFolder({
 
     const updatedCollectionDisplays = structuredClone(collectionDisplays);
     updatedCollectionDisplays[collectionDisplayIdx].requests.push(addedRequest);
-    setCollectionDisplays(updatedCollectionDisplays);
+    // setCollectionDisplays(updatedCollectionDisplays);
 
     const store = await getOrCreateStore();
     await store.upsertRequest(addedRequest);
@@ -63,7 +73,7 @@ export default function CollectionFolder({
                 structuredClone(collectionDisplays);
               updatedCollectionDisplays[collectionDisplayIdx].collection.name =
                 pendingName;
-              setCollectionDisplays(updatedCollectionDisplays);
+              // setCollectionDisplays(updatedCollectionDisplays);
 
               if (
                 requestDisplay.indices?.collectionDisplayIdx ===
@@ -72,7 +82,7 @@ export default function CollectionFolder({
                 const updatedRequestDisplay = structuredClone(requestDisplay);
                 updatedRequestDisplay.collection =
                   updatedCollectionDisplays[collectionDisplayIdx].collection;
-                setRequestDisplay(updatedRequestDisplay);
+                // setRequestDisplay(updatedRequestDisplay);
               }
 
               const store = await getOrCreateStore();
@@ -115,7 +125,7 @@ export default function CollectionFolder({
                 structuredClone(collectionDisplays);
               updatedCollectionDisplays[collectionDisplayIdx].isOpen =
                 !updatedCollectionDisplays[collectionDisplayIdx].isOpen;
-              setCollectionDisplays(updatedCollectionDisplays);
+              // setCollectionDisplays(updatedCollectionDisplays);
             }}
           >
             {collection.name}
@@ -134,20 +144,13 @@ export default function CollectionFolder({
             onClick={async () => {
               const isConfirmed = await confirm(`Delete "${collection.name}"?`);
               if (isConfirmed) {
-                const updatedCollectionDisplays = [...collectionDisplays];
-                updatedCollectionDisplays.splice(collectionDisplayIdx, 1);
-                setCollectionDisplays(updatedCollectionDisplays);
-
+                await deleteCollectionDisplay(collectionDisplayIdx);
                 if (
                   requestDisplay.indices?.collectionDisplayIdx ===
                   collectionDisplayIdx
                 ) {
-                  const updatedRequestDisplay = getDefaultRequestDisplay();
-                  setRequestDisplay(updatedRequestDisplay);
+                  resetRequestDisplay();
                 }
-
-                const store = await getOrCreateStore();
-                await store.deleteCollection(collection.id);
               }
             }}
           />
@@ -162,9 +165,9 @@ export default function CollectionFolder({
                 collectionDisplayIdx={collectionDisplayIdx}
                 requestIdx={requestIdx}
                 collectionDisplays={collectionDisplays}
-                setCollectionDisplays={setCollectionDisplays}
+                setCollectionDisplays={() => { }}
                 requestDisplay={requestDisplay}
-                setRequestDisplay={setRequestDisplay}
+                setRequestDisplay={() => { }}
               />
             ))}
             <Button iconName="add-plus" onClick={onAddRequest}>
@@ -176,3 +179,19 @@ export default function CollectionFolder({
     </SpaceBetween>
   );
 }
+
+const mapStateToProps = (state: RootState) => {
+  return {
+    collectionDisplays: state.collectionDisplays.value,
+    requestDisplay: state.requestDisplay.value,
+  };
+}
+
+const mapDispatchToProps = (dispatch: AppDispatch) => {
+  return {
+    deleteCollectionDisplay: (collectionDisplayIdx: number) => dispatch(deleteCollectionDisplay(collectionDisplayIdx)),
+    resetRequestDisplay: () => dispatch({ type: requestDisplaySlice.actions.resetRequestDisplay.type })
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CollectionFolder);

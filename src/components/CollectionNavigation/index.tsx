@@ -8,25 +8,31 @@ import {
   Box,
 } from "@cloudscape-design/components";
 import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
-import { getOrCreateStore } from "@quigeon/db";
-import { getDefaultCollectionDisplay } from "@quigeon/generators";
 import CollectionFolder from "./CollectionFolder";
+import { connect } from "react-redux";
+import { createDefaultCollectionDisplay } from "@quigeon/collectionDisplaysSlice";
+import { AppDispatch, RootState } from "@quigeon/store";
 
-export default function CollectionNavigation({
-  collectionDisplays,
-  setCollectionDisplays,
-  requestDisplay,
-  setRequestDisplay,
-  isDrawerOpen,
-  setIsDrawerOpen,
-}: {
+interface StateProps {
   collectionDisplays: CollectionDisplay[];
-  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
   requestDisplay: RequestDisplay;
-  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
+}
+
+interface DispatchProps {
+  createDefaultCollectionDisplay: () => Promise<void>;
+}
+
+interface OwnProps {
   isDrawerOpen: boolean;
-  setIsDrawerOpen: (isDrawerOpen: boolean) => void;
-}) {
+  setIsDrawerOpen: (value: boolean) => void;
+}
+
+type Props = StateProps & DispatchProps & OwnProps;
+
+function CollectionNavigation(props: Props) {
+
+  const { isDrawerOpen, setIsDrawerOpen, collectionDisplays, requestDisplay } = props;
+
   return isDrawerOpen ? (
     <div style={{ width: "30em" }}>
       <Container
@@ -50,26 +56,11 @@ export default function CollectionNavigation({
             <CollectionFolder
               key={collectionDisplay.collection.id}
               collectionDisplayIdx={collectionDisplayIdx}
-              collectionDisplays={collectionDisplays}
-              setCollectionDisplays={setCollectionDisplays}
-              requestDisplay={requestDisplay}
-              setRequestDisplay={setRequestDisplay}
             />
           ))}
           <Button
             iconName="add-plus"
-            onClick={async () => {
-              const addedCollectionDisplay = getDefaultCollectionDisplay();
-
-              const updatedCollectionDisplays = [
-                ...collectionDisplays,
-                addedCollectionDisplay,
-              ];
-              setCollectionDisplays(updatedCollectionDisplays);
-
-              const store = await getOrCreateStore();
-              await store.upsertCollection(addedCollectionDisplay.collection);
-            }}
+            onClick={props.createDefaultCollectionDisplay}
           >
             Add
           </Button>
@@ -86,3 +77,18 @@ export default function CollectionNavigation({
     />
   );
 }
+
+const mapStateToProps = (state: RootState) => {
+  return {
+    collectionDisplays: state.collectionDisplays.value,
+    requestDisplay: state.requestDisplay.value,
+  };
+}
+
+const mapDispatchToProps = (dispatch: AppDispatch) => {
+  return {
+    createDefaultCollectionDisplay: () => dispatch(createDefaultCollectionDisplay())
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CollectionNavigation);

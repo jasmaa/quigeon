@@ -1,6 +1,8 @@
-import { createSlice, Dispatch, PayloadAction } from "@reduxjs/toolkit";
-import { Collection, CollectionDisplay, Request } from "./interfaces";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { CollectionDisplay, Request } from "./interfaces";
 import { getOrCreateStore } from "./db";
+import { AppDispatch, RootState } from "./store";
+import { getDefaultCollectionDisplay } from "./generators";
 
 interface CollectionDisplaysState {
   value: CollectionDisplay[];
@@ -14,21 +16,17 @@ export const collectionDisplaysSlice = createSlice({
   name: "collectionDisplays",
   initialState,
   reducers: {
-    loadCollectionDisplays: (state, action: PayloadAction<{ collectionDisplays: CollectionDisplay[] }>) => {
+    setCollectionDisplays: (state, action: PayloadAction<{ collectionDisplays: CollectionDisplay[] }>) => {
       state.value = action.payload.collectionDisplays;
     },
-    createCollectionDisplay: (state, action: PayloadAction<{ collection: Collection }>) => { },
-    openCollectionDisplay: (state, action: PayloadAction<{ collectionIdx: number }>) => { },
-    closeCollectionDisplay: (state, action: PayloadAction<{ collectionIdx: number }>) => { },
-    deleteCollectionDisplay: (state, action: PayloadAction<{ collectionIdx: number }>) => { },
     createRequest: (state, action: PayloadAction<{ collectionIdx: number, request: Request }>) => { },
     updateRequest: () => { },
     deleteRequest: () => { },
   }
-})
+});
 
 export function loadCollectionDisplays() {
-  return async (dispatch: Dispatch) => {
+  return async (dispatch: AppDispatch) => {
     const db = await getOrCreateStore();
 
     const collectionDisplays = [];
@@ -44,10 +42,57 @@ export function loadCollectionDisplays() {
     }
 
     dispatch({
-      type: "collectionDisplays/loadCollectionDisplays",
+      type: collectionDisplaysSlice.actions.setCollectionDisplays.type,
       payload: {
         collectionDisplays,
       }
     });
   }
+}
+
+export function createDefaultCollectionDisplay() {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+    const collectionDisplays = getState().collectionDisplays.value;
+
+    const addedCollectionDisplay = getDefaultCollectionDisplay();
+
+    const store = await getOrCreateStore();
+    await store.upsertCollection(addedCollectionDisplay.collection);
+
+    const updatedCollectionDisplays = [
+      ...collectionDisplays,
+      addedCollectionDisplay,
+    ];
+    dispatch({
+      type: collectionDisplaysSlice.actions.setCollectionDisplays.type,
+      payload: {
+        collectionDisplays: updatedCollectionDisplays,
+      }
+    });
+  };
+}
+
+export function updateCollectionDisplay(collectionIdx: number, updatedCollectionDisplay: CollectionDisplay) {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+
+  };
+}
+
+export function deleteCollectionDisplay(collectionDisplayIdx: number) {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+    const collectionDisplays = getState().collectionDisplays.value;
+
+    const store = await getOrCreateStore();
+    const collectionId = collectionDisplays[collectionDisplayIdx].collection.id;
+    await store.deleteCollection(collectionId);
+
+    const updatedCollectionDisplays = [...collectionDisplays];
+    updatedCollectionDisplays.splice(collectionDisplayIdx, 1);
+    dispatch({
+      type: collectionDisplaysSlice.actions.setCollectionDisplays.type,
+      payload: {
+        collectionDisplays: updatedCollectionDisplays,
+      }
+    });
+  };
 }
