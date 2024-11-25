@@ -45,7 +45,7 @@ export default function RequestHeaderEditor({
             placeholder="Key"
             disabled={!header.editable}
             onChange={({ detail }) => {
-              const updatedHeaders = [...headers];
+              const updatedHeaders = structuredClone(headers);
               updatedHeaders[idx - PREDEFINED_HEADERS.length].key =
                 detail.value;
               onChange(updatedHeaders);
@@ -56,7 +56,7 @@ export default function RequestHeaderEditor({
             placeholder="Value"
             disabled={!header.editable}
             onChange={({ detail }) => {
-              const updatedHeaders = [...headers];
+              const updatedHeaders = structuredClone(headers);
               updatedHeaders[idx - PREDEFINED_HEADERS.length].value =
                 detail.value;
               onChange(updatedHeaders);
