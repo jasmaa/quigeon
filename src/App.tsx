@@ -63,13 +63,12 @@ function App(props: Props) {
   const pendingRequestId = useRef<string>();
 
   useEffect(() => {
-    // (async () => {
-    //   const collectionDisplays = await loadCollectionDisplays();
-    //   setCollectionDisplays(collectionDisplays);
-    //   const environment = await loadOrCreateDefaultEnvironment();
-    //   setEnvironment(environment);
-    // })();
-    props.loadCollectionDisplays();
+    (async () => {
+      await props.loadCollectionDisplays();
+      const environment = await loadOrCreateDefaultEnvironment();
+      setEnvironment(environment);
+    })();
+
   }, []);
 
   useEffect(() => {
@@ -211,10 +210,7 @@ function App(props: Props) {
           <div style={{ flexGrow: 1, paddingRight: "1em" }}>
             <SpaceBetween size="l" direction="vertical">
               <RequestContainer
-                collectionDisplays={collectionDisplays}
-                setCollectionDisplays={setCollectionDisplays}
-                requestDisplay={requestDisplay}
-                setRequestDisplay={setRequestDisplay}
+                loading={isSendingRequest}
                 onSend={onSendRequest}
               />
               <ResponseContainer

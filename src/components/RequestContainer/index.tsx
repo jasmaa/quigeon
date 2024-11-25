@@ -19,26 +19,35 @@ import {
   CollectionDisplay,
 } from "@quigeon/interfaces";
 import { validateRequestName } from "@quigeon/validators";
-import { getOrCreateStore } from "@quigeon/db";
 import { getDefaultRequestDisplay } from "@quigeon/generators";
 import RichInput from "@quigeon/components/RichInput";
 import BodyEditor from "./RequestBodyEditor";
+import { AppDispatch, RootState } from "@quigeon/store";
+import { connect } from "react-redux";
+import { updateRequest } from "@quigeon/collectionDisplaysSlice";
+import { requestDisplaySlice } from "@quigeon/requestDisplaySlice";
 
-export default function RequestContainer({
-  collectionDisplays,
-  setCollectionDisplays,
-  requestDisplay,
-  setRequestDisplay,
-  loading = false,
-  onSend,
-}: {
+
+interface StateProps {
   collectionDisplays: CollectionDisplay[];
-  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
   requestDisplay: RequestDisplay;
+}
+
+interface DispatchProps {
+  updateRequest: (collectionDisplayIdx: number, requestIdx: number, request: Request) => Promise<void>;
   setRequestDisplay: (requestDisplay: RequestDisplay) => void;
-  loading?: boolean;
+}
+
+interface OwnProps {
+  loading: boolean;
   onSend?: (request: Request) => void;
-}) {
+}
+
+type Props = StateProps & DispatchProps & OwnProps;
+
+function RequestContainer(props: Props) {
+  const { requestDisplay, setRequestDisplay, updateRequest, loading, onSend } = props;
+
   const { request } = requestDisplay;
   const {
     name,
@@ -66,17 +75,10 @@ export default function RequestContainer({
   ) => {
     setRequestDisplay(updatedRequestDisplay);
 
+    // TODO: debounce
     if (updatedRequestDisplay.indices) {
-      const updatedCollectionDisplays = structuredClone(collectionDisplays);
-      updatedCollectionDisplays[
-        updatedRequestDisplay.indices.collectionDisplayIdx
-      ].requests[updatedRequestDisplay.indices.requestIdx] = structuredClone(
-        updatedRequestDisplay.request,
-      );
-      setCollectionDisplays(updatedCollectionDisplays);
-
-      const store = await getOrCreateStore();
-      await store.upsertRequest(updatedRequestDisplay.request);
+      const { collectionDisplayIdx, requestIdx } = updatedRequestDisplay.indices;
+      updateRequest(collectionDisplayIdx, requestIdx, updatedRequestDisplay.request);
     }
   };
 
@@ -307,3 +309,19 @@ export default function RequestContainer({
     </Container>
   );
 }
+
+const mapStateToProps = (state: RootState) => {
+  return {
+    collectionDisplays: state.collectionDisplays.value,
+    requestDisplay: state.requestDisplay.value,
+  };
+}
+
+const mapDispatchToProps = (dispatch: AppDispatch) => {
+  return {
+    updateRequest: (collectionDisplayIdx: number, requestIdx: number, request: Request) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
+    setRequestDisplay: (requestDisplay: RequestDisplay) => dispatch({ type: requestDisplaySlice.actions.setRequestDisplay.type, payload: { requestDisplay } }),
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(RequestContainer);
