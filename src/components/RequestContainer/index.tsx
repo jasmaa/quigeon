@@ -27,14 +27,17 @@ import { connect } from "react-redux";
 import { updateRequest } from "@quigeon/collectionDisplaysSlice";
 import { requestDisplaySlice } from "@quigeon/requestDisplaySlice";
 
-
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
   requestDisplay: RequestDisplay;
 }
 
 interface DispatchProps {
-  updateRequest: (collectionDisplayIdx: number, requestIdx: number, request: Request) => Promise<void>;
+  updateRequest: (
+    collectionDisplayIdx: number,
+    requestIdx: number,
+    request: Request,
+  ) => Promise<void>;
   setRequestDisplay: (requestDisplay: RequestDisplay) => void;
 }
 
@@ -46,7 +49,8 @@ interface OwnProps {
 type Props = StateProps & DispatchProps & OwnProps;
 
 function RequestContainer(props: Props) {
-  const { requestDisplay, setRequestDisplay, updateRequest, loading, onSend } = props;
+  const { requestDisplay, setRequestDisplay, updateRequest, loading, onSend } =
+    props;
 
   const { request } = requestDisplay;
   const {
@@ -77,8 +81,13 @@ function RequestContainer(props: Props) {
 
     // TODO: debounce
     if (updatedRequestDisplay.indices) {
-      const { collectionDisplayIdx, requestIdx } = updatedRequestDisplay.indices;
-      updateRequest(collectionDisplayIdx, requestIdx, updatedRequestDisplay.request);
+      const { collectionDisplayIdx, requestIdx } =
+        updatedRequestDisplay.indices;
+      updateRequest(
+        collectionDisplayIdx,
+        requestIdx,
+        updatedRequestDisplay.request,
+      );
     }
   };
 
@@ -315,13 +324,21 @@ const mapStateToProps = (state: RootState) => {
     collectionDisplays: state.collectionDisplays.value,
     requestDisplay: state.requestDisplay.value,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    updateRequest: (collectionDisplayIdx: number, requestIdx: number, request: Request) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
-    setRequestDisplay: (requestDisplay: RequestDisplay) => dispatch({ type: requestDisplaySlice.actions.setRequestDisplay.type, payload: { requestDisplay } }),
-  }
-}
+    updateRequest: (
+      collectionDisplayIdx: number,
+      requestIdx: number,
+      request: Request,
+    ) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
+    setRequestDisplay: (requestDisplay: RequestDisplay) =>
+      dispatch({
+        type: requestDisplaySlice.actions.setRequestDisplay.type,
+        payload: { requestDisplay },
+      }),
+  };
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(RequestContainer);

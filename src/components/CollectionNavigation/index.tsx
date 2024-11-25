@@ -7,7 +7,7 @@ import {
   Grid,
   Box,
 } from "@cloudscape-design/components";
-import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
+import { CollectionDisplay } from "@quigeon/interfaces";
 import CollectionFolder from "./CollectionFolder";
 import { connect } from "react-redux";
 import { createDefaultCollectionDisplay } from "@quigeon/collectionDisplaysSlice";
@@ -15,7 +15,6 @@ import { AppDispatch, RootState } from "@quigeon/store";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
-  requestDisplay: RequestDisplay;
 }
 
 interface DispatchProps {
@@ -30,8 +29,7 @@ interface OwnProps {
 type Props = StateProps & DispatchProps & OwnProps;
 
 function CollectionNavigation(props: Props) {
-
-  const { isDrawerOpen, setIsDrawerOpen, collectionDisplays, requestDisplay } = props;
+  const { isDrawerOpen, setIsDrawerOpen, collectionDisplays } = props;
 
   return isDrawerOpen ? (
     <div style={{ width: "30em" }}>
@@ -81,14 +79,17 @@ function CollectionNavigation(props: Props) {
 const mapStateToProps = (state: RootState) => {
   return {
     collectionDisplays: state.collectionDisplays.value,
-    requestDisplay: state.requestDisplay.value,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    createDefaultCollectionDisplay: () => dispatch(createDefaultCollectionDisplay())
-  }
-}
+    createDefaultCollectionDisplay: () =>
+      dispatch(createDefaultCollectionDisplay()),
+  };
+};
 
-export default connect(mapStateToProps, mapDispatchToProps)(CollectionNavigation);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(CollectionNavigation);

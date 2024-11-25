@@ -6,13 +6,14 @@ import {
   SpaceBetween,
 } from "@cloudscape-design/components";
 import { validateCollectionName } from "@quigeon/validators";
-import {
-  CollectionDisplay,
-  RequestDisplay,
-} from "@quigeon/interfaces";
+import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
 import RequestFile from "./RequestFile";
 import { AppDispatch, RootState } from "@quigeon/store";
-import { createDefaultRequest, deleteCollectionDisplay, updateCollectionDisplay } from "@quigeon/collectionDisplaysSlice";
+import {
+  createDefaultRequest,
+  deleteCollectionDisplay,
+  updateCollectionDisplay,
+} from "@quigeon/collectionDisplaysSlice";
 import { connect } from "react-redux";
 
 interface StateProps {
@@ -21,7 +22,10 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  updateCollectionDisplay: (collectionDisplayIdx: number, collectionDisplay: CollectionDisplay) => Promise<void>;
+  updateCollectionDisplay: (
+    collectionDisplayIdx: number,
+    collectionDisplay: CollectionDisplay,
+  ) => Promise<void>;
   deleteCollectionDisplay: (collectionDisplayIdx: number) => Promise<void>;
   createDefaultRequest: (collectionDisplayIdx: number) => Promise<void>;
 }
@@ -33,8 +37,13 @@ interface OwnProps {
 type Props = StateProps & DispatchProps & OwnProps;
 
 function CollectionFolder(props: Props) {
-
-  const { collectionDisplays, collectionDisplayIdx, requestDisplay, deleteCollectionDisplay, updateCollectionDisplay, createDefaultRequest } = props;
+  const {
+    collectionDisplays,
+    collectionDisplayIdx,
+    deleteCollectionDisplay,
+    updateCollectionDisplay,
+    createDefaultRequest,
+  } = props;
 
   const { collection, requests, isOpen } =
     collectionDisplays[collectionDisplayIdx];
@@ -52,10 +61,15 @@ function CollectionFolder(props: Props) {
             const isValid = validateCollectionName(pendingName);
             setIsPendingNameValid(isValid);
             if (isValid) {
-              const updatedCollectionDisplay = structuredClone(collectionDisplays[collectionDisplayIdx]);
+              const updatedCollectionDisplay = structuredClone(
+                collectionDisplays[collectionDisplayIdx],
+              );
               updatedCollectionDisplay.collection.name = pendingName;
 
-              await updateCollectionDisplay(collectionDisplayIdx, updatedCollectionDisplay);
+              await updateCollectionDisplay(
+                collectionDisplayIdx,
+                updatedCollectionDisplay,
+              );
 
               setIsEditingName(false);
             }
@@ -88,10 +102,16 @@ function CollectionFolder(props: Props) {
             iconName={isOpen ? "folder-open" : "folder"}
             variant="link"
             onClick={async () => {
-              const updatedCollectionDisplay = structuredClone(collectionDisplays[collectionDisplayIdx]);
-              updatedCollectionDisplay.isOpen = !updatedCollectionDisplay.isOpen;
+              const updatedCollectionDisplay = structuredClone(
+                collectionDisplays[collectionDisplayIdx],
+              );
+              updatedCollectionDisplay.isOpen =
+                !updatedCollectionDisplay.isOpen;
 
-              await updateCollectionDisplay(collectionDisplayIdx, updatedCollectionDisplay);
+              await updateCollectionDisplay(
+                collectionDisplayIdx,
+                updatedCollectionDisplay,
+              );
             }}
           >
             {collection.name}
@@ -126,7 +146,10 @@ function CollectionFolder(props: Props) {
                 requestIdx={requestIdx}
               />
             ))}
-            <Button iconName="add-plus" onClick={() => createDefaultRequest(collectionDisplayIdx)}>
+            <Button
+              iconName="add-plus"
+              onClick={() => createDefaultRequest(collectionDisplayIdx)}
+            >
               Add
             </Button>
           </SpaceBetween>
@@ -141,14 +164,22 @@ const mapStateToProps = (state: RootState) => {
     collectionDisplays: state.collectionDisplays.value,
     requestDisplay: state.requestDisplay.value,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    updateCollectionDisplay: (collectionDisplayIdx: number, collectionDisplay: CollectionDisplay) => dispatch(updateCollectionDisplay(collectionDisplayIdx, collectionDisplay)),
-    deleteCollectionDisplay: (collectionDisplayIdx: number) => dispatch(deleteCollectionDisplay(collectionDisplayIdx)),
-    createDefaultRequest: (collectionDisplayIdx: number) => dispatch(createDefaultRequest(collectionDisplayIdx)),
-  }
-}
+    updateCollectionDisplay: (
+      collectionDisplayIdx: number,
+      collectionDisplay: CollectionDisplay,
+    ) =>
+      dispatch(
+        updateCollectionDisplay(collectionDisplayIdx, collectionDisplay),
+      ),
+    deleteCollectionDisplay: (collectionDisplayIdx: number) =>
+      dispatch(deleteCollectionDisplay(collectionDisplayIdx)),
+    createDefaultRequest: (collectionDisplayIdx: number) =>
+      dispatch(createDefaultRequest(collectionDisplayIdx)),
+  };
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(CollectionFolder);

@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { CollectionDisplay, Request, RequestDisplay } from "@quigeon/interfaces";
+import {
+  CollectionDisplay,
+  Request,
+  RequestDisplay,
+} from "@quigeon/interfaces";
 import { validateRequestName } from "@quigeon/validators";
 import { Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { connect } from "react-redux";
@@ -13,9 +17,16 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  updateRequest: (collectionDisplayIdx: number, requestIdx: number, request: Request) => Promise<void>;
-  deleteRequest: (collectionDisplayIdx: number, requestIdx: number) => Promise<void>;
-  setRequestDisplay: (requestDisplay: RequestDisplay) => void
+  updateRequest: (
+    collectionDisplayIdx: number,
+    requestIdx: number,
+    request: Request,
+  ) => Promise<void>;
+  deleteRequest: (
+    collectionDisplayIdx: number,
+    requestIdx: number,
+  ) => Promise<void>;
+  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
 }
 
 interface OwnProps {
@@ -26,7 +37,14 @@ interface OwnProps {
 type Props = StateProps & DispatchProps & OwnProps;
 
 function RequestFile(props: Props) {
-  const { collectionDisplays, collectionDisplayIdx, requestIdx, updateRequest, deleteRequest, setRequestDisplay } = props;
+  const {
+    collectionDisplays,
+    collectionDisplayIdx,
+    requestIdx,
+    updateRequest,
+    deleteRequest,
+    setRequestDisplay,
+  } = props;
 
   const request = collectionDisplays[collectionDisplayIdx].requests[requestIdx];
 
@@ -43,7 +61,9 @@ function RequestFile(props: Props) {
             const isValid = validateRequestName(pendingName);
             setIsPendingNameValid(isValid);
             if (isValid) {
-              const updatedRequest = structuredClone(collectionDisplays[collectionDisplayIdx].requests[requestIdx]);
+              const updatedRequest = structuredClone(
+                collectionDisplays[collectionDisplayIdx].requests[requestIdx],
+              );
               updatedRequest.name = pendingName;
 
               updateRequest(collectionDisplayIdx, requestIdx, updatedRequest);
@@ -125,14 +145,23 @@ const mapStateToProps = (state: RootState) => {
     collectionDisplays: state.collectionDisplays.value,
     requestDisplay: state.requestDisplay.value,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    updateRequest: (collectionDisplayIdx: number, requestIdx: number, request: Request) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
-    deleteRequest: (collectionDisplayIdx: number, requestIdx: number) => dispatch(deleteRequest(collectionDisplayIdx, requestIdx)),
-    setRequestDisplay: (requestDisplay: RequestDisplay) => dispatch({ type: requestDisplaySlice.actions.setRequestDisplay.type, payload: { requestDisplay } })
-  }
-}
+    updateRequest: (
+      collectionDisplayIdx: number,
+      requestIdx: number,
+      request: Request,
+    ) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
+    deleteRequest: (collectionDisplayIdx: number, requestIdx: number) =>
+      dispatch(deleteRequest(collectionDisplayIdx, requestIdx)),
+    setRequestDisplay: (requestDisplay: RequestDisplay) =>
+      dispatch({
+        type: requestDisplaySlice.actions.setRequestDisplay.type,
+        payload: { requestDisplay },
+      }),
+  };
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(RequestFile);

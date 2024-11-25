@@ -25,7 +25,6 @@ import {
   generateAwscurl,
   generateVariableSubsitutedRequest,
   getDefaultEnvironment,
-  getDefaultRequestDisplay,
 } from "@quigeon/generators";
 import VariableEditor from "@quigeon/components/VariableEditor";
 import CodeBlock from "@quigeon/components/CodeBlock";
@@ -35,6 +34,7 @@ import { AppDispatch, RootState } from "./store";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
+  requestDisplay: RequestDisplay;
 }
 
 interface DispatchProps {
@@ -44,12 +44,8 @@ interface DispatchProps {
 type Props = StateProps & DispatchProps;
 
 function App(props: Props) {
-  const [collectionDisplays, setCollectionDisplays] = useState<
-    CollectionDisplay[]
-  >([]);
-  const [requestDisplay, setRequestDisplay] = useState<RequestDisplay>(
-    getDefaultRequestDisplay(),
-  );
+  const { requestDisplay } = props;
+
   const [environment, setEnvironment] = useState<Environment>();
   const [isVariableModalVisible, setIsVariableModalVisible] = useState(false);
   const [isExportModalVisible, setIsExportModalVisible] = useState(false);
@@ -68,7 +64,6 @@ function App(props: Props) {
       const environment = await loadOrCreateDefaultEnvironment();
       setEnvironment(environment);
     })();
-
   }, []);
 
   useEffect(() => {
@@ -77,9 +72,9 @@ function App(props: Props) {
       const updatedAwscurlCodeSnippet = generateAwscurl(
         environment
           ? generateVariableSubsitutedRequest(
-            requestDisplay.request,
-            environment.variables,
-          )
+              requestDisplay.request,
+              environment.variables,
+            )
           : requestDisplay.request,
       );
       setAwscurlCodeSnippet(updatedAwscurlCodeSnippet);
@@ -204,7 +199,10 @@ function App(props: Props) {
         <div style={{ display: "flex" }}>
           <div style={{ paddingRight: "1em" }}>
             <SpaceBetween size="l" direction="vertical">
-              <CollectionNavigation isDrawerOpen={isDrawerOpen} setIsDrawerOpen={setIsDrawerOpen} />
+              <CollectionNavigation
+                isDrawerOpen={isDrawerOpen}
+                setIsDrawerOpen={setIsDrawerOpen}
+              />
             </SpaceBetween>
           </div>
           <div style={{ flexGrow: 1, paddingRight: "1em" }}>
@@ -248,13 +246,14 @@ function App(props: Props) {
 const mapStateToProps = (state: RootState) => {
   return {
     collectionDisplays: state.collectionDisplays.value,
+    requestDisplay: state.requestDisplay.value,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    loadCollectionDisplays: () => dispatch(loadCollectionDisplays())
-  }
-}
+    loadCollectionDisplays: () => dispatch(loadCollectionDisplays()),
+  };
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(App);

@@ -6,7 +6,7 @@ const store = configureStore({
   reducer: {
     collectionDisplays: collectionDisplaysSlice.reducer,
     requestDisplay: requestDisplaySlice.reducer,
-  }
+  },
 });
 
 export default store;
