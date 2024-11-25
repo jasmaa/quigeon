@@ -1,20 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { CollectionDisplay, Request } from "./interfaces";
-import { getOrCreateStore } from "./db";
-import { AppDispatch, RootState } from "./store";
-import { getDefaultCollectionDisplay, getDefaultRequest } from "./generators";
-import { requestDisplaySlice } from "./requestDisplaySlice";
+import { CollectionDisplay, Request } from "../interfaces";
+import { getOrCreateAppStorage } from "../app-storage";
+import { AppDispatch, RootState } from "@quigeon/redux/store";
+import { getDefaultCollectionDisplay, getDefaultRequest } from "../generators";
+import { activeRequestSlice } from "./active-request-slice";
 
 interface CollectionDisplaysState {
-  value: CollectionDisplay[];
+  collectionDisplays: CollectionDisplay[];
 }
 
 const initialState: CollectionDisplaysState = {
-  value: [],
+  collectionDisplays: [],
 };
 
-export const collectionDisplaysSlice = createSlice({
-  name: "collectionDisplays",
+export const collectionsSlice = createSlice({
+  name: "collections",
   initialState,
   reducers: {
     setCollectionDisplays: (
@@ -22,7 +22,7 @@ export const collectionDisplaysSlice = createSlice({
       action: PayloadAction<{ collectionDisplays: CollectionDisplay[] }>,
     ) => {
       const { collectionDisplays } = action.payload;
-      state.value = collectionDisplays;
+      state.collectionDisplays = collectionDisplays;
     },
     setCollectionDisplay: (
       state,
@@ -32,21 +32,21 @@ export const collectionDisplaysSlice = createSlice({
       }>,
     ) => {
       const { collectionDisplayIdx, collectionDisplay } = action.payload;
-      state.value[collectionDisplayIdx] = collectionDisplay;
+      state.collectionDisplays[collectionDisplayIdx] = collectionDisplay;
     },
     appendCollectionDisplay: (
       state,
       action: PayloadAction<{ collectionDisplay: CollectionDisplay }>,
     ) => {
       const { collectionDisplay } = action.payload;
-      state.value.push(collectionDisplay);
+      state.collectionDisplays.push(collectionDisplay);
     },
     removeCollectionDisplay: (
       state,
       action: PayloadAction<{ collectionDisplayIdx: number }>,
     ) => {
       const { collectionDisplayIdx } = action.payload;
-      state.value.splice(collectionDisplayIdx, 1);
+      state.collectionDisplays.splice(collectionDisplayIdx, 1);
     },
     setRequest: (
       state,
@@ -57,14 +57,15 @@ export const collectionDisplaysSlice = createSlice({
       }>,
     ) => {
       const { collectionDisplayIdx, requestIdx, request } = action.payload;
-      state.value[collectionDisplayIdx].requests[requestIdx] = request;
+      state.collectionDisplays[collectionDisplayIdx].requests[requestIdx] =
+        request;
     },
     appendRequest: (
       state,
       action: PayloadAction<{ collectionDisplayIdx: number; request: Request }>,
     ) => {
       const { collectionDisplayIdx, request } = action.payload;
-      state.value[collectionDisplayIdx].requests.push(request);
+      state.collectionDisplays[collectionDisplayIdx].requests.push(request);
     },
     removeRequest: (
       state,
@@ -74,19 +75,22 @@ export const collectionDisplaysSlice = createSlice({
       }>,
     ) => {
       const { collectionDisplayIdx, requestIdx } = action.payload;
-      state.value[collectionDisplayIdx].requests.splice(requestIdx, 1);
+      state.collectionDisplays[collectionDisplayIdx].requests.splice(
+        requestIdx,
+        1,
+      );
     },
   },
 });
 
 export function loadCollectionDisplays() {
   return async (dispatch: AppDispatch) => {
-    const db = await getOrCreateStore();
+    const appStorage = await getOrCreateAppStorage();
 
     const collectionDisplays = [];
-    const collections = await db.listCollections();
+    const collections = await appStorage.listCollections();
     for (const collection of collections) {
-      const requests = await db.listRequests(collection.id);
+      const requests = await appStorage.listRequests(collection.id);
       const collectionDisplay = {
         collection,
         requests,
@@ -96,7 +100,7 @@ export function loadCollectionDisplays() {
     }
 
     dispatch({
-      type: collectionDisplaysSlice.actions.setCollectionDisplays.type,
+      type: collectionsSlice.actions.setCollectionDisplays.type,
       payload: {
         collectionDisplays,
       },
@@ -108,11 +112,11 @@ export function createDefaultCollectionDisplay() {
   return async (dispatch: AppDispatch) => {
     const addedCollectionDisplay = getDefaultCollectionDisplay();
 
-    const store = await getOrCreateStore();
-    await store.upsertCollection(addedCollectionDisplay.collection);
+    const appStorage = await getOrCreateAppStorage();
+    await appStorage.upsertCollection(addedCollectionDisplay.collection);
 
     dispatch({
-      type: collectionDisplaysSlice.actions.appendCollectionDisplay.type,
+      type: collectionsSlice.actions.appendCollectionDisplay.type,
       payload: {
         collectionDisplay: addedCollectionDisplay,
       },
@@ -125,13 +129,13 @@ export function updateCollectionDisplay(
   collectionDisplay: CollectionDisplay,
 ) {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
-    const requestDisplay = getState().requestDisplay.value;
+    const requestDisplay = getState().activeRequest.requestDisplay;
 
-    const store = await getOrCreateStore();
-    await store.upsertCollection(collectionDisplay.collection);
+    const appStorage = await getOrCreateAppStorage();
+    await appStorage.upsertCollection(collectionDisplay.collection);
 
     dispatch({
-      type: collectionDisplaysSlice.actions.setCollectionDisplay.type,
+      type: collectionsSlice.actions.setCollectionDisplay.type,
       payload: {
         collectionDisplayIdx,
         collectionDisplay,
@@ -143,7 +147,7 @@ export function updateCollectionDisplay(
       updatedRequestDisplay.collection = collectionDisplay.collection;
 
       dispatch({
-        type: requestDisplaySlice.actions.setRequestDisplay.type,
+        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
         payload: {
           requestDisplay: updatedRequestDisplay,
         },
@@ -154,15 +158,15 @@ export function updateCollectionDisplay(
 
 export function deleteCollectionDisplay(collectionDisplayIdx: number) {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
-    const collectionDisplays = getState().collectionDisplays.value;
-    const requestDisplay = getState().requestDisplay.value;
+    const collectionDisplays = getState().collections.collectionDisplays;
+    const requestDisplay = getState().activeRequest.requestDisplay;
 
-    const store = await getOrCreateStore();
+    const appStorage = await getOrCreateAppStorage();
     const collectionId = collectionDisplays[collectionDisplayIdx].collection.id;
-    await store.deleteCollection(collectionId);
+    await appStorage.deleteCollection(collectionId);
 
     dispatch({
-      type: collectionDisplaysSlice.actions.removeCollectionDisplay.type,
+      type: collectionsSlice.actions.removeCollectionDisplay.type,
       payload: {
         collectionDisplayIdx,
       },
@@ -170,7 +174,7 @@ export function deleteCollectionDisplay(collectionDisplayIdx: number) {
 
     if (requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx) {
       dispatch({
-        type: requestDisplaySlice.actions.resetRequestDisplay.type,
+        type: activeRequestSlice.actions.resetActiveRequestDisplay.type,
       });
     }
   };
@@ -179,19 +183,19 @@ export function deleteCollectionDisplay(collectionDisplayIdx: number) {
 export function createDefaultRequest(collectionDisplayIdx: number) {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     const collectionDisplay =
-      getState().collectionDisplays.value[collectionDisplayIdx];
+      getState().collections.collectionDisplays[collectionDisplayIdx];
 
     const addedRequest: Request = getDefaultRequest();
     addedRequest.collectionId = collectionDisplay.collection.id;
 
-    const store = await getOrCreateStore();
-    await store.upsertRequest(addedRequest);
+    const appStorage = await getOrCreateAppStorage();
+    await appStorage.upsertRequest(addedRequest);
 
     const updatedCollectionDisplay = structuredClone(collectionDisplay);
     updatedCollectionDisplay.requests.push(addedRequest);
 
     dispatch({
-      type: collectionDisplaysSlice.actions.setCollectionDisplay.type,
+      type: collectionsSlice.actions.setCollectionDisplay.type,
       payload: {
         collectionDisplayIdx,
         collectionDisplay: updatedCollectionDisplay,
@@ -206,13 +210,13 @@ export function updateRequest(
   request: Request,
 ) {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
-    const requestDisplay = getState().requestDisplay.value;
+    const requestDisplay = getState().activeRequest.requestDisplay;
 
-    const store = await getOrCreateStore();
-    await store.upsertRequest(request);
+    const appStorage = await getOrCreateAppStorage();
+    await appStorage.upsertRequest(request);
 
     dispatch({
-      type: collectionDisplaysSlice.actions.setRequest.type,
+      type: collectionsSlice.actions.setRequest.type,
       payload: {
         collectionDisplayIdx,
         requestIdx,
@@ -228,7 +232,7 @@ export function updateRequest(
       updatedRequestDisplay.request = request;
 
       dispatch({
-        type: requestDisplaySlice.actions.setRequestDisplay.type,
+        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
         payload: {
           requestDisplay: updatedRequestDisplay,
         },
@@ -243,16 +247,16 @@ export function deleteRequest(
 ) {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     const requestId =
-      getState().collectionDisplays.value[collectionDisplayIdx].requests[
+      getState().collections.collectionDisplays[collectionDisplayIdx].requests[
         requestIdx
       ].id;
-    const requestDisplay = getState().requestDisplay.value;
+    const requestDisplay = getState().activeRequest.requestDisplay;
 
-    const store = await getOrCreateStore();
-    await store.deleteRequest(requestId);
+    const appStorage = await getOrCreateAppStorage();
+    await appStorage.deleteRequest(requestId);
 
     dispatch({
-      type: collectionDisplaysSlice.actions.removeRequest.type,
+      type: collectionsSlice.actions.removeRequest.type,
       payload: {
         collectionDisplayIdx,
         requestIdx,
@@ -264,7 +268,7 @@ export function deleteRequest(
       requestDisplay.indices?.requestIdx === requestIdx
     ) {
       dispatch({
-        type: requestDisplaySlice.actions.resetRequestDisplay.type,
+        type: activeRequestSlice.actions.resetActiveRequestDisplay.type,
       });
     }
   };

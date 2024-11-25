@@ -11,7 +11,10 @@ import { decryptSecret, encryptSecret } from "./crypto";
 const version = import.meta.env.VITE_PUBLIC_CURRENT_ENCRYPTION_KEY_VERSION!;
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-class Store {
+/**
+ * Persistent storage for application
+ */
+class AppStorage {
   private path: string;
   private db?: Database;
   private isInitialized: boolean;
@@ -171,13 +174,13 @@ class Store {
   }
 }
 
-let store: Store;
-export async function getOrCreateStore() {
-  if (store && store.getIsInitialized()) {
-    return store;
+let appStorage: AppStorage;
+export async function getOrCreateAppStorage() {
+  if (appStorage && appStorage.getIsInitialized()) {
+    return appStorage;
   } else {
-    store = new Store("sqlite:data.db");
-    await store.initialize();
-    return store;
+    appStorage = new AppStorage("sqlite:data.db");
+    await appStorage.initialize();
+    return appStorage;
   }
 }

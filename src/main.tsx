@@ -1,8 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
-import App from "./App";
-import store from "./store";
+import App from "@quigeon/App";
+import store from "@quigeon/redux/store";
 import "highlight.js/styles/default.css";
 import "ace-builds/src-noconflict/ace";
 import "ace-builds/src-noconflict/mode-json";

@@ -8,17 +8,17 @@ import {
 import { validateCollectionName } from "@quigeon/validators";
 import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
 import RequestFile from "./RequestFile";
-import { AppDispatch, RootState } from "@quigeon/store";
+import { AppDispatch, RootState } from "@quigeon/redux/store";
 import {
   createDefaultRequest,
   deleteCollectionDisplay,
   updateCollectionDisplay,
-} from "@quigeon/collectionDisplaysSlice";
+} from "@quigeon/redux/collections-slice";
 import { connect } from "react-redux";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
-  requestDisplay: RequestDisplay;
+  activeRequestDisplay: RequestDisplay;
 }
 
 interface DispatchProps {
@@ -161,8 +161,8 @@ function CollectionFolder(props: Props) {
 
 const mapStateToProps = (state: RootState) => {
   return {
-    collectionDisplays: state.collectionDisplays.value,
-    requestDisplay: state.requestDisplay.value,
+    collectionDisplays: state.collections.collectionDisplays,
+    activeRequestDisplay: state.activeRequest.requestDisplay,
   };
 };
 

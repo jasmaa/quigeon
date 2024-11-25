@@ -10,8 +10,8 @@ import {
 import { CollectionDisplay } from "@quigeon/interfaces";
 import CollectionFolder from "./CollectionFolder";
 import { connect } from "react-redux";
-import { createDefaultCollectionDisplay } from "@quigeon/collectionDisplaysSlice";
-import { AppDispatch, RootState } from "@quigeon/store";
+import { createDefaultCollectionDisplay } from "@quigeon/redux/collections-slice";
+import { AppDispatch, RootState } from "@quigeon/redux/store";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
@@ -78,7 +78,7 @@ function CollectionNavigation(props: Props) {
 
 const mapStateToProps = (state: RootState) => {
   return {
-    collectionDisplays: state.collectionDisplays.value,
+    collectionDisplays: state.collections.collectionDisplays,
   };
 };
 

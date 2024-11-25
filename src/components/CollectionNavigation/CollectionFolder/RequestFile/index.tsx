@@ -7,13 +7,13 @@ import {
 import { validateRequestName } from "@quigeon/validators";
 import { Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { connect } from "react-redux";
-import { AppDispatch, RootState } from "@quigeon/store";
-import { deleteRequest, updateRequest } from "@quigeon/collectionDisplaysSlice";
-import { requestDisplaySlice } from "@quigeon/requestDisplaySlice";
+import { AppDispatch, RootState } from "@quigeon/redux/store";
+import { deleteRequest, updateRequest } from "@quigeon/redux/collections-slice";
+import { activeRequestSlice } from "@quigeon/redux/active-request-slice";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
-  requestDisplay: RequestDisplay;
+  activeRequestDisplay: RequestDisplay;
 }
 
 interface DispatchProps {
@@ -142,8 +142,8 @@ function RequestFile(props: Props) {
 
 const mapStateToProps = (state: RootState) => {
   return {
-    collectionDisplays: state.collectionDisplays.value,
-    requestDisplay: state.requestDisplay.value,
+    collectionDisplays: state.collections.collectionDisplays,
+    activeRequestDisplay: state.activeRequest.requestDisplay,
   };
 };
 
@@ -158,7 +158,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(deleteRequest(collectionDisplayIdx, requestIdx)),
     setRequestDisplay: (requestDisplay: RequestDisplay) =>
       dispatch({
-        type: requestDisplaySlice.actions.setRequestDisplay.type,
+        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
         payload: { requestDisplay },
       }),
   };

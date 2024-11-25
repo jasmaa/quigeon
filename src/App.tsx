@@ -17,7 +17,7 @@ import {
   RequestDisplay,
   Environment,
 } from "@quigeon/interfaces";
-import { getOrCreateStore } from "@quigeon/db";
+import { getOrCreateAppStorage } from "@quigeon/app-storage";
 import CollectionNavigation from "@quigeon/components/CollectionNavigation";
 import RequestContainer from "@quigeon/components/RequestContainer";
 import ResponseContainer from "@quigeon/components/ResponseContainer";
@@ -29,8 +29,8 @@ import {
 import VariableEditor from "@quigeon/components/VariableEditor";
 import CodeBlock from "@quigeon/components/CodeBlock";
 import { connect } from "react-redux";
-import { loadCollectionDisplays } from "./collectionDisplaysSlice";
-import { AppDispatch, RootState } from "./store";
+import { loadCollectionDisplays } from "./redux/collections-slice";
+import { AppDispatch, RootState } from "./redux/store";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
@@ -88,11 +88,11 @@ function App(props: Props) {
   }, [requestDisplay.request, environment]);
 
   const loadOrCreateDefaultEnvironment = async () => {
-    const store = await getOrCreateStore();
-    const environments = await store.listEnvironments();
+    const appStorage = await getOrCreateAppStorage();
+    const environments = await appStorage.listEnvironments();
     if (environments.length <= 0) {
       const environment = getDefaultEnvironment();
-      await store.upsertEnvironment(environment);
+      await appStorage.upsertEnvironment(environment);
       return environment;
     } else {
       return environments[0];
@@ -164,8 +164,8 @@ function App(props: Props) {
               updatedEnvironment.variables = variables;
               setEnvironment(updatedEnvironment);
 
-              const store = await getOrCreateStore();
-              await store.upsertEnvironment(updatedEnvironment);
+              const appStorage = await getOrCreateAppStorage();
+              await appStorage.upsertEnvironment(updatedEnvironment);
             }
           }}
         />
@@ -245,8 +245,8 @@ function App(props: Props) {
 
 const mapStateToProps = (state: RootState) => {
   return {
-    collectionDisplays: state.collectionDisplays.value,
-    requestDisplay: state.requestDisplay.value,
+    collectionDisplays: state.collections.collectionDisplays,
+    requestDisplay: state.activeRequest.requestDisplay,
   };
 };
 

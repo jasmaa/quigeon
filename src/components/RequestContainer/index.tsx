@@ -22,10 +22,10 @@ import { validateRequestName } from "@quigeon/validators";
 import { getDefaultRequestDisplay } from "@quigeon/generators";
 import RichInput from "@quigeon/components/RichInput";
 import BodyEditor from "./RequestBodyEditor";
-import { AppDispatch, RootState } from "@quigeon/store";
+import { AppDispatch, RootState } from "@quigeon/redux/store";
 import { connect } from "react-redux";
-import { updateRequest } from "@quigeon/collectionDisplaysSlice";
-import { requestDisplaySlice } from "@quigeon/requestDisplaySlice";
+import { updateRequest } from "@quigeon/redux/collections-slice";
+import { activeRequestSlice } from "@quigeon/redux/active-request-slice";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
@@ -321,8 +321,8 @@ function RequestContainer(props: Props) {
 
 const mapStateToProps = (state: RootState) => {
   return {
-    collectionDisplays: state.collectionDisplays.value,
-    requestDisplay: state.requestDisplay.value,
+    collectionDisplays: state.collections.collectionDisplays,
+    requestDisplay: state.activeRequest.requestDisplay,
   };
 };
 
@@ -335,7 +335,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     ) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
     setRequestDisplay: (requestDisplay: RequestDisplay) =>
       dispatch({
-        type: requestDisplaySlice.actions.setRequestDisplay.type,
+        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
         payload: { requestDisplay },
       }),
   };
