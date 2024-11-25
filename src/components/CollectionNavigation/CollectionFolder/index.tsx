@@ -8,7 +8,7 @@ import {
 import { validateCollectionName } from "@quigeon/validators";
 import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
 import RequestFile from "./RequestFile";
-import { AppDispatch, RootState } from "@quigeon/redux/store";
+import { RootState } from "@quigeon/redux/store";
 import {
   createDefaultRequest,
   deleteCollectionDisplay,
@@ -29,7 +29,9 @@ interface DispatchProps {
   ) => Promise<void>;
   deleteCollectionDisplay: (collectionDisplayIdx: number) => Promise<void>;
   createDefaultRequest: (collectionDisplayIdx: number) => Promise<void>;
-  setActiveRequestDisplay: (requestDisplay: RequestDisplay) => void;
+  setActiveRequestDisplay: (payload: {
+    requestDisplay: RequestDisplay;
+  }) => void;
   resetActiveRequestDisplay: () => void;
 }
 
@@ -86,7 +88,9 @@ function CollectionFolder(props: Props) {
                 updatedActiveRequestDisplay.collection =
                   updatedCollectionDisplay.collection;
 
-                setActiveRequestDisplay(updatedActiveRequestDisplay);
+                setActiveRequestDisplay({
+                  requestDisplay: updatedActiveRequestDisplay,
+                });
               }
 
               setIsEditingName(false);
@@ -135,12 +139,14 @@ function CollectionFolder(props: Props) {
                 activeRequestDisplay.indices?.collectionDisplayIdx ===
                 collectionDisplayIdx
               ) {
-                const updatedRequestDisplay =
+                const updatedActiveRequestDisplay =
                   structuredClone(activeRequestDisplay);
-                updatedRequestDisplay.collection =
+                updatedActiveRequestDisplay.collection =
                   updatedCollectionDisplay.collection;
 
-                setActiveRequestDisplay(updatedRequestDisplay);
+                setActiveRequestDisplay({
+                  requestDisplay: updatedActiveRequestDisplay,
+                });
               }
             }}
           >
@@ -203,31 +209,13 @@ const mapStateToProps = (state: RootState) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: AppDispatch) => {
-  return {
-    updateCollectionDisplay: (
-      collectionDisplayIdx: number,
-      collectionDisplay: CollectionDisplay,
-    ) =>
-      dispatch(
-        updateCollectionDisplay(collectionDisplayIdx, collectionDisplay),
-      ),
-    deleteCollectionDisplay: (collectionDisplayIdx: number) =>
-      dispatch(deleteCollectionDisplay(collectionDisplayIdx)),
-    createDefaultRequest: (collectionDisplayIdx: number) =>
-      dispatch(createDefaultRequest(collectionDisplayIdx)),
-    setActiveRequestDisplay: (requestDisplay: RequestDisplay) =>
-      dispatch({
-        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
-        payload: {
-          requestDisplay,
-        },
-      }),
-    resetActiveRequestDisplay: () =>
-      dispatch({
-        type: activeRequestSlice.actions.resetActiveRequestDisplay.type,
-      }),
-  };
+const actionCreators = {
+  updateCollectionDisplay,
+  deleteCollectionDisplay,
+  createDefaultRequest,
+  setActiveRequestDisplay: activeRequestSlice.actions.setActiveRequestDisplay,
+  resetActiveRequestDisplay:
+    activeRequestSlice.actions.resetActiveRequestDisplay,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(CollectionFolder);
+export default connect(mapStateToProps, actionCreators)(CollectionFolder);

@@ -7,7 +7,7 @@ import {
 import { validateRequestName } from "@quigeon/validators";
 import { Button, Input, SpaceBetween } from "@cloudscape-design/components";
 import { connect } from "react-redux";
-import { AppDispatch, RootState } from "@quigeon/redux/store";
+import { RootState } from "@quigeon/redux/store";
 import { deleteRequest, updateRequest } from "@quigeon/redux/collections-slice";
 import { activeRequestSlice } from "@quigeon/redux/active-request-slice";
 
@@ -26,7 +26,9 @@ interface DispatchProps {
     collectionDisplayIdx: number,
     requestIdx: number,
   ) => Promise<void>;
-  setActiveRequestDisplay: (requestDisplay: RequestDisplay) => void;
+  setActiveRequestDisplay: (payload: {
+    requestDisplay: RequestDisplay;
+  }) => void;
   resetActiveRequestDisplay: () => void;
 }
 
@@ -84,7 +86,9 @@ function RequestFile(props: Props) {
                   structuredClone(activeRequestDisplay);
                 updatedActiveRequestDisplay.request = updatedRequest;
 
-                setActiveRequestDisplay(updatedActiveRequestDisplay);
+                setActiveRequestDisplay({
+                  requestDisplay: updatedActiveRequestDisplay,
+                });
               }
 
               setIsEditingName(false);
@@ -130,7 +134,9 @@ function RequestFile(props: Props) {
                   requestIdx,
                 },
               };
-              setActiveRequestDisplay(requestDisplay);
+              setActiveRequestDisplay({
+                requestDisplay,
+              });
             }}
           >
             {request.method} {request.name}
@@ -174,25 +180,12 @@ const mapStateToProps = (state: RootState) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: AppDispatch) => {
-  return {
-    updateRequest: (
-      collectionDisplayIdx: number,
-      requestIdx: number,
-      request: Request,
-    ) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
-    deleteRequest: (collectionDisplayIdx: number, requestIdx: number) =>
-      dispatch(deleteRequest(collectionDisplayIdx, requestIdx)),
-    setActiveRequestDisplay: (requestDisplay: RequestDisplay) =>
-      dispatch({
-        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
-        payload: { requestDisplay },
-      }),
-    resetActiveRequestDisplay: () =>
-      dispatch({
-        type: activeRequestSlice.actions.resetActiveRequestDisplay.type,
-      }),
-  };
+const actionCreators = {
+  updateRequest,
+  deleteRequest,
+  setActiveRequestDisplay: activeRequestSlice.actions.setActiveRequestDisplay,
+  resetActiveRequestDisplay:
+    activeRequestSlice.actions.resetActiveRequestDisplay,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(RequestFile);
+export default connect(mapStateToProps, actionCreators)(RequestFile);

@@ -11,7 +11,7 @@ import { CollectionDisplay } from "@quigeon/interfaces";
 import CollectionFolder from "./CollectionFolder";
 import { connect } from "react-redux";
 import { createDefaultCollectionDisplay } from "@quigeon/redux/collections-slice";
-import { AppDispatch, RootState } from "@quigeon/redux/store";
+import { RootState } from "@quigeon/redux/store";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
@@ -82,14 +82,8 @@ const mapStateToProps = (state: RootState) => {
   };
 };
 
-const mapDispatchToProps = (dispatch: AppDispatch) => {
-  return {
-    createDefaultCollectionDisplay: () =>
-      dispatch(createDefaultCollectionDisplay()),
-  };
+const actionCreators = {
+  createDefaultCollectionDisplay,
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(CollectionNavigation);
+export default connect(mapStateToProps, actionCreators)(CollectionNavigation);
