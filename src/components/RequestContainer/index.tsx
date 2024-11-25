@@ -26,6 +26,7 @@ import { AppDispatch, RootState } from "@quigeon/redux/store";
 import { connect } from "react-redux";
 import { updateRequest } from "@quigeon/redux/collections-slice";
 import { activeRequestSlice } from "@quigeon/redux/active-request-slice";
+import lodash from "lodash";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
@@ -33,11 +34,13 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  updateRequest: (
-    collectionDisplayIdx: number,
-    requestIdx: number,
-    request: Request,
-  ) => Promise<void>;
+  updateRequest: lodash.DebouncedFunc<
+    (
+      collectionDisplayIdx: number,
+      requestIdx: number,
+      request: Request,
+    ) => Promise<void>
+  >;
   setRequestDisplay: (requestDisplay: RequestDisplay) => void;
 }
 
@@ -79,7 +82,6 @@ function RequestContainer(props: Props) {
   ) => {
     setRequestDisplay(updatedRequestDisplay);
 
-    // TODO: debounce
     if (updatedRequestDisplay.indices) {
       const { collectionDisplayIdx, requestIdx } =
         updatedRequestDisplay.indices;
@@ -328,11 +330,11 @@ const mapStateToProps = (state: RootState) => {
 
 const mapDispatchToProps = (dispatch: AppDispatch) => {
   return {
-    updateRequest: (
-      collectionDisplayIdx: number,
-      requestIdx: number,
-      request: Request,
-    ) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
+    updateRequest: lodash.debounce(
+      (collectionDisplayIdx: number, requestIdx: number, request: Request) =>
+        dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
+      200,
+    ),
     setRequestDisplay: (requestDisplay: RequestDisplay) =>
       dispatch({
         type: activeRequestSlice.actions.setActiveRequestDisplay.type,
