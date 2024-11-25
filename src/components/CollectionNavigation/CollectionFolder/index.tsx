@@ -15,6 +15,7 @@ import {
   updateCollectionDisplay,
 } from "@quigeon/redux/collections-slice";
 import { connect } from "react-redux";
+import { activeRequestSlice } from "@quigeon/redux/active-request-slice";
 
 interface StateProps {
   collectionDisplays: CollectionDisplay[];
@@ -28,6 +29,8 @@ interface DispatchProps {
   ) => Promise<void>;
   deleteCollectionDisplay: (collectionDisplayIdx: number) => Promise<void>;
   createDefaultRequest: (collectionDisplayIdx: number) => Promise<void>;
+  setActiveRequestDisplay: (requestDisplay: RequestDisplay) => void;
+  resetActiveRequestDisplay: () => void;
 }
 
 interface OwnProps {
@@ -39,10 +42,13 @@ type Props = StateProps & DispatchProps & OwnProps;
 function CollectionFolder(props: Props) {
   const {
     collectionDisplays,
+    activeRequestDisplay,
     collectionDisplayIdx,
     deleteCollectionDisplay,
     updateCollectionDisplay,
     createDefaultRequest,
+    setActiveRequestDisplay,
+    resetActiveRequestDisplay,
   } = props;
 
   const { collection, requests, isOpen } =
@@ -70,6 +76,18 @@ function CollectionFolder(props: Props) {
                 collectionDisplayIdx,
                 updatedCollectionDisplay,
               );
+
+              if (
+                activeRequestDisplay.indices?.collectionDisplayIdx ===
+                collectionDisplayIdx
+              ) {
+                const updatedActiveRequestDisplay =
+                  structuredClone(activeRequestDisplay);
+                updatedActiveRequestDisplay.collection =
+                  updatedCollectionDisplay.collection;
+
+                setActiveRequestDisplay(updatedActiveRequestDisplay);
+              }
 
               setIsEditingName(false);
             }
@@ -112,6 +130,18 @@ function CollectionFolder(props: Props) {
                 collectionDisplayIdx,
                 updatedCollectionDisplay,
               );
+
+              if (
+                activeRequestDisplay.indices?.collectionDisplayIdx ===
+                collectionDisplayIdx
+              ) {
+                const updatedRequestDisplay =
+                  structuredClone(activeRequestDisplay);
+                updatedRequestDisplay.collection =
+                  updatedCollectionDisplay.collection;
+
+                setActiveRequestDisplay(updatedRequestDisplay);
+              }
             }}
           >
             {collection.name}
@@ -131,6 +161,13 @@ function CollectionFolder(props: Props) {
               const isConfirmed = await confirm(`Delete "${collection.name}"?`);
               if (isConfirmed) {
                 await deleteCollectionDisplay(collectionDisplayIdx);
+
+                if (
+                  activeRequestDisplay.indices?.collectionDisplayIdx ===
+                  collectionDisplayIdx
+                ) {
+                  resetActiveRequestDisplay();
+                }
               }
             }}
           />
@@ -179,6 +216,17 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
       dispatch(deleteCollectionDisplay(collectionDisplayIdx)),
     createDefaultRequest: (collectionDisplayIdx: number) =>
       dispatch(createDefaultRequest(collectionDisplayIdx)),
+    setActiveRequestDisplay: (requestDisplay: RequestDisplay) =>
+      dispatch({
+        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
+        payload: {
+          requestDisplay,
+        },
+      }),
+    resetActiveRequestDisplay: () =>
+      dispatch({
+        type: activeRequestSlice.actions.resetActiveRequestDisplay.type,
+      }),
   };
 };
 

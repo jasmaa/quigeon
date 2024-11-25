@@ -3,7 +3,6 @@ import { CollectionDisplay, Request } from "../interfaces";
 import { getOrCreateAppStorage } from "../app-storage";
 import { AppDispatch, RootState } from "@quigeon/redux/store";
 import { getDefaultCollectionDisplay, getDefaultRequest } from "../generators";
-import { activeRequestSlice } from "./active-request-slice";
 
 interface CollectionDisplaysState {
   collectionDisplays: CollectionDisplay[];
@@ -128,9 +127,7 @@ export function updateCollectionDisplay(
   collectionDisplayIdx: number,
   collectionDisplay: CollectionDisplay,
 ) {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
-    const requestDisplay = getState().activeRequest.requestDisplay;
-
+  return async (dispatch: AppDispatch) => {
     const appStorage = await getOrCreateAppStorage();
     await appStorage.upsertCollection(collectionDisplay.collection);
 
@@ -141,25 +138,12 @@ export function updateCollectionDisplay(
         collectionDisplay,
       },
     });
-
-    if (requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx) {
-      const updatedRequestDisplay = structuredClone(requestDisplay);
-      updatedRequestDisplay.collection = collectionDisplay.collection;
-
-      dispatch({
-        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
-        payload: {
-          requestDisplay: updatedRequestDisplay,
-        },
-      });
-    }
   };
 }
 
 export function deleteCollectionDisplay(collectionDisplayIdx: number) {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     const collectionDisplays = getState().collections.collectionDisplays;
-    const requestDisplay = getState().activeRequest.requestDisplay;
 
     const appStorage = await getOrCreateAppStorage();
     const collectionId = collectionDisplays[collectionDisplayIdx].collection.id;
@@ -171,12 +155,6 @@ export function deleteCollectionDisplay(collectionDisplayIdx: number) {
         collectionDisplayIdx,
       },
     });
-
-    if (requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx) {
-      dispatch({
-        type: activeRequestSlice.actions.resetActiveRequestDisplay.type,
-      });
-    }
   };
 }
 
@@ -209,9 +187,7 @@ export function updateRequest(
   requestIdx: number,
   request: Request,
 ) {
-  return async (dispatch: AppDispatch, getState: () => RootState) => {
-    const requestDisplay = getState().activeRequest.requestDisplay;
-
+  return async (dispatch: AppDispatch) => {
     const appStorage = await getOrCreateAppStorage();
     await appStorage.upsertRequest(request);
 
@@ -223,21 +199,6 @@ export function updateRequest(
         request,
       },
     });
-
-    if (
-      requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx &&
-      requestDisplay.indices.requestIdx === requestIdx
-    ) {
-      const updatedRequestDisplay = structuredClone(requestDisplay);
-      updatedRequestDisplay.request = request;
-
-      dispatch({
-        type: activeRequestSlice.actions.setActiveRequestDisplay.type,
-        payload: {
-          requestDisplay: updatedRequestDisplay,
-        },
-      });
-    }
   };
 }
 
@@ -250,7 +211,6 @@ export function deleteRequest(
       getState().collections.collectionDisplays[collectionDisplayIdx].requests[
         requestIdx
       ].id;
-    const requestDisplay = getState().activeRequest.requestDisplay;
 
     const appStorage = await getOrCreateAppStorage();
     await appStorage.deleteRequest(requestId);
@@ -262,14 +222,5 @@ export function deleteRequest(
         requestIdx,
       },
     });
-
-    if (
-      requestDisplay.indices?.collectionDisplayIdx === collectionDisplayIdx &&
-      requestDisplay.indices?.requestIdx === requestIdx
-    ) {
-      dispatch({
-        type: activeRequestSlice.actions.resetActiveRequestDisplay.type,
-      });
-    }
   };
 }

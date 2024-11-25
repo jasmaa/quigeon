@@ -41,7 +41,7 @@ interface DispatchProps {
       request: Request,
     ) => Promise<void>
   >;
-  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
+  setActiveRequestDisplay: (requestDisplay: RequestDisplay) => void;
 }
 
 interface OwnProps {
@@ -52,8 +52,13 @@ interface OwnProps {
 type Props = StateProps & DispatchProps & OwnProps;
 
 function RequestContainer(props: Props) {
-  const { requestDisplay, setRequestDisplay, updateRequest, loading, onSend } =
-    props;
+  const {
+    requestDisplay,
+    setActiveRequestDisplay,
+    updateRequest,
+    loading,
+    onSend,
+  } = props;
 
   const { request } = requestDisplay;
   const {
@@ -80,12 +85,12 @@ function RequestContainer(props: Props) {
   const onChangeRequestDisplay = async (
     updatedRequestDisplay: RequestDisplay,
   ) => {
-    setRequestDisplay(updatedRequestDisplay);
+    setActiveRequestDisplay(updatedRequestDisplay);
 
     if (updatedRequestDisplay.indices) {
       const { collectionDisplayIdx, requestIdx } =
         updatedRequestDisplay.indices;
-      updateRequest(
+      await updateRequest(
         collectionDisplayIdx,
         requestIdx,
         updatedRequestDisplay.request,
@@ -335,7 +340,7 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
         dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
       200,
     ),
-    setRequestDisplay: (requestDisplay: RequestDisplay) =>
+    setActiveRequestDisplay: (requestDisplay: RequestDisplay) =>
       dispatch({
         type: activeRequestSlice.actions.setActiveRequestDisplay.type,
         payload: { requestDisplay },

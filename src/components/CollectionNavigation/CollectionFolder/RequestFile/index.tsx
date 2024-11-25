@@ -26,7 +26,8 @@ interface DispatchProps {
     collectionDisplayIdx: number,
     requestIdx: number,
   ) => Promise<void>;
-  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
+  setActiveRequestDisplay: (requestDisplay: RequestDisplay) => void;
+  resetActiveRequestDisplay: () => void;
 }
 
 interface OwnProps {
@@ -39,11 +40,13 @@ type Props = StateProps & DispatchProps & OwnProps;
 function RequestFile(props: Props) {
   const {
     collectionDisplays,
+    activeRequestDisplay,
     collectionDisplayIdx,
     requestIdx,
     updateRequest,
     deleteRequest,
-    setRequestDisplay,
+    setActiveRequestDisplay,
+    resetActiveRequestDisplay,
   } = props;
 
   const request = collectionDisplays[collectionDisplayIdx].requests[requestIdx];
@@ -66,7 +69,23 @@ function RequestFile(props: Props) {
               );
               updatedRequest.name = pendingName;
 
-              updateRequest(collectionDisplayIdx, requestIdx, updatedRequest);
+              await updateRequest(
+                collectionDisplayIdx,
+                requestIdx,
+                updatedRequest,
+              );
+
+              if (
+                activeRequestDisplay.indices?.collectionDisplayIdx ===
+                  collectionDisplayIdx &&
+                activeRequestDisplay.indices.requestIdx === requestIdx
+              ) {
+                const updatedActiveRequestDisplay =
+                  structuredClone(activeRequestDisplay);
+                updatedActiveRequestDisplay.request = updatedRequest;
+
+                setActiveRequestDisplay(updatedActiveRequestDisplay);
+              }
 
               setIsEditingName(false);
             }
@@ -111,7 +130,7 @@ function RequestFile(props: Props) {
                   requestIdx,
                 },
               };
-              setRequestDisplay(requestDisplay);
+              setActiveRequestDisplay(requestDisplay);
             }}
           >
             {request.method} {request.name}
@@ -131,6 +150,14 @@ function RequestFile(props: Props) {
               const isConfirmed = await confirm(`Delete "${request.name}"?`);
               if (isConfirmed) {
                 await deleteRequest(collectionDisplayIdx, requestIdx);
+
+                if (
+                  activeRequestDisplay.indices?.collectionDisplayIdx ===
+                    collectionDisplayIdx &&
+                  activeRequestDisplay.indices?.requestIdx === requestIdx
+                ) {
+                  resetActiveRequestDisplay();
+                }
               }
             }}
           />
@@ -156,10 +183,14 @@ const mapDispatchToProps = (dispatch: AppDispatch) => {
     ) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
     deleteRequest: (collectionDisplayIdx: number, requestIdx: number) =>
       dispatch(deleteRequest(collectionDisplayIdx, requestIdx)),
-    setRequestDisplay: (requestDisplay: RequestDisplay) =>
+    setActiveRequestDisplay: (requestDisplay: RequestDisplay) =>
       dispatch({
         type: activeRequestSlice.actions.setActiveRequestDisplay.type,
         payload: { requestDisplay },
+      }),
+    resetActiveRequestDisplay: () =>
+      dispatch({
+        type: activeRequestSlice.actions.resetActiveRequestDisplay.type,
       }),
   };
 };
