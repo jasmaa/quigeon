@@ -1,25 +1,33 @@
 import { useState } from "react";
-import { getDefaultRequestDisplay } from "@quigeon/generators";
-import { CollectionDisplay, RequestDisplay } from "@quigeon/interfaces";
-import { getOrCreateStore } from "@quigeon/db";
+import { CollectionDisplay, Request, RequestDisplay } from "@quigeon/interfaces";
 import { validateRequestName } from "@quigeon/validators";
 import { Button, Input, SpaceBetween } from "@cloudscape-design/components";
+import { connect } from "react-redux";
+import { AppDispatch, RootState } from "@quigeon/store";
+import { deleteRequest, updateRequest } from "@quigeon/collectionDisplaysSlice";
+import { requestDisplaySlice } from "@quigeon/requestDisplaySlice";
 
-export default function RequestFile({
-  collectionDisplayIdx,
-  requestIdx,
-  collectionDisplays,
-  setCollectionDisplays,
-  requestDisplay,
-  setRequestDisplay,
-}: {
+interface StateProps {
+  collectionDisplays: CollectionDisplay[];
+  requestDisplay: RequestDisplay;
+}
+
+interface DispatchProps {
+  updateRequest: (collectionDisplayIdx: number, requestIdx: number, request: Request) => Promise<void>;
+  deleteRequest: (collectionDisplayIdx: number, requestIdx: number) => Promise<void>;
+  setRequestDisplay: (requestDisplay: RequestDisplay) => void
+}
+
+interface OwnProps {
   collectionDisplayIdx: number;
   requestIdx: number;
-  collectionDisplays: CollectionDisplay[];
-  setCollectionDisplays: (collectionDisplays: CollectionDisplay[]) => void;
-  requestDisplay: RequestDisplay;
-  setRequestDisplay: (requestDisplay: RequestDisplay) => void;
-}) {
+}
+
+type Props = StateProps & DispatchProps & OwnProps;
+
+function RequestFile(props: Props) {
+  const { collectionDisplays, collectionDisplayIdx, requestIdx, updateRequest, deleteRequest, setRequestDisplay } = props;
+
   const request = collectionDisplays[collectionDisplayIdx].requests[requestIdx];
 
   const [isEditingName, setIsEditingName] = useState(false);
@@ -35,29 +43,10 @@ export default function RequestFile({
             const isValid = validateRequestName(pendingName);
             setIsPendingNameValid(isValid);
             if (isValid) {
-              const updatedCollectionDisplays =
-                structuredClone(collectionDisplays);
-              updatedCollectionDisplays[collectionDisplayIdx].requests[
-                requestIdx
-              ].name = pendingName;
-              setCollectionDisplays(updatedCollectionDisplays);
+              const updatedRequest = structuredClone(collectionDisplays[collectionDisplayIdx].requests[requestIdx]);
+              updatedRequest.name = pendingName;
 
-              if (
-                requestDisplay.indices?.collectionDisplayIdx ===
-                  collectionDisplayIdx &&
-                requestDisplay.indices.requestIdx === requestIdx
-              ) {
-                const updatedRequestDisplay = structuredClone(requestDisplay);
-                updatedRequestDisplay.request.name = pendingName;
-                setRequestDisplay(updatedRequestDisplay);
-              }
-
-              const store = await getOrCreateStore();
-              await store.upsertRequest(
-                updatedCollectionDisplays[collectionDisplayIdx].requests[
-                  requestIdx
-                ],
-              );
+              updateRequest(collectionDisplayIdx, requestIdx, updatedRequest);
 
               setIsEditingName(false);
             }
@@ -121,25 +110,7 @@ export default function RequestFile({
             onClick={async () => {
               const isConfirmed = await confirm(`Delete "${request.name}"?`);
               if (isConfirmed) {
-                const updatedCollectionDisplays =
-                  structuredClone(collectionDisplays);
-                updatedCollectionDisplays[collectionDisplayIdx].requests.splice(
-                  requestIdx,
-                  1,
-                );
-                setCollectionDisplays(updatedCollectionDisplays);
-
-                if (
-                  requestDisplay.indices?.collectionDisplayIdx ===
-                    collectionDisplayIdx &&
-                  requestDisplay.indices?.requestIdx === requestIdx
-                ) {
-                  const updatedRequestDisplay = getDefaultRequestDisplay();
-                  setRequestDisplay(updatedRequestDisplay);
-                }
-
-                const store = await getOrCreateStore();
-                await store.deleteRequest(request.id);
+                await deleteRequest(collectionDisplayIdx, requestIdx);
               }
             }}
           />
@@ -148,3 +119,20 @@ export default function RequestFile({
     </SpaceBetween>
   );
 }
+
+const mapStateToProps = (state: RootState) => {
+  return {
+    collectionDisplays: state.collectionDisplays.value,
+    requestDisplay: state.requestDisplay.value,
+  };
+}
+
+const mapDispatchToProps = (dispatch: AppDispatch) => {
+  return {
+    updateRequest: (collectionDisplayIdx: number, requestIdx: number, request: Request) => dispatch(updateRequest(collectionDisplayIdx, requestIdx, request)),
+    deleteRequest: (collectionDisplayIdx: number, requestIdx: number) => dispatch(deleteRequest(collectionDisplayIdx, requestIdx)),
+    setRequestDisplay: (requestDisplay: RequestDisplay) => dispatch({ type: requestDisplaySlice.actions.setRequestDisplay.type, payload: { requestDisplay } })
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(RequestFile);

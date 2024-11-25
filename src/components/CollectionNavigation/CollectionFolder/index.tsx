@@ -124,10 +124,6 @@ function CollectionFolder(props: Props) {
                 key={request.id}
                 collectionDisplayIdx={collectionDisplayIdx}
                 requestIdx={requestIdx}
-                collectionDisplays={collectionDisplays}
-                setCollectionDisplays={() => { }}
-                requestDisplay={requestDisplay}
-                setRequestDisplay={() => { }}
               />
             ))}
             <Button iconName="add-plus" onClick={() => createDefaultRequest(collectionDisplayIdx)}>

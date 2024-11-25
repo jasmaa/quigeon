@@ -18,27 +18,33 @@ export const collectionDisplaysSlice = createSlice({
   initialState,
   reducers: {
     setCollectionDisplays: (state, action: PayloadAction<{ collectionDisplays: CollectionDisplay[] }>) => {
-      state.value = action.payload.collectionDisplays;
+      const { collectionDisplays } = action.payload;
+      state.value = collectionDisplays;
     },
     setCollectionDisplay: (state, action: PayloadAction<{ collectionDisplayIdx: number, collectionDisplay: CollectionDisplay }>) => {
-      const updatedCollectionDisplays = [...state.value];
-      updatedCollectionDisplays[action.payload.collectionDisplayIdx] = action.payload.collectionDisplay;
-      state.value = updatedCollectionDisplays;
+      const { collectionDisplayIdx, collectionDisplay } = action.payload;
+      state.value[collectionDisplayIdx] = collectionDisplay;
     },
     appendCollectionDisplay: (state, action: PayloadAction<{ collectionDisplay: CollectionDisplay }>) => {
-      state.value = [
-        ...state.value,
-        action.payload.collectionDisplay,
-      ];
+      const { collectionDisplay } = action.payload;
+      state.value.push(collectionDisplay);
     },
     removeCollectionDisplay: (state, action: PayloadAction<{ collectionDisplayIdx: number }>) => {
-      const updatedCollectionDisplays = [...state.value];
-      updatedCollectionDisplays.splice(action.payload.collectionDisplayIdx, 1);
-      state.value = updatedCollectionDisplays;
+      const { collectionDisplayIdx } = action.payload;
+      state.value.splice(collectionDisplayIdx, 1);
     },
-    appendRequest: (state, action: PayloadAction<{ collectionIdx: number, request: Request }>) => { },
-    updateRequest: () => { },
-    removeRequest: () => { },
+    setRequest: (state, action: PayloadAction<{ collectionDisplayIdx: number, requestIdx: number, request: Request }>) => {
+      const { collectionDisplayIdx, requestIdx, request } = action.payload;
+      state.value[collectionDisplayIdx].requests[requestIdx] = request;
+    },
+    appendRequest: (state, action: PayloadAction<{ collectionDisplayIdx: number, request: Request }>) => {
+      const { collectionDisplayIdx, request } = action.payload;
+      state.value[collectionDisplayIdx].requests.push(request);
+    },
+    removeRequest: (state, action: PayloadAction<{ collectionDisplayIdx: number, requestIdx: number }>) => {
+      const { collectionDisplayIdx, requestIdx } = action.payload;
+      state.value[collectionDisplayIdx].requests.splice(requestIdx, 1);
+    },
   }
 });
 
@@ -103,6 +109,8 @@ export function updateCollectionDisplay(collectionDisplayIdx: number, collection
       collectionDisplayIdx
     ) {
       const updatedRequestDisplay = structuredClone(requestDisplay);
+      updatedRequestDisplay.collection = collectionDisplay.collection;
+
       dispatch({
         type: requestDisplaySlice.actions.setRequestDisplay.type,
         payload: {
@@ -161,4 +169,66 @@ export function createDefaultRequest(collectionDisplayIdx: number) {
       }
     });
   };
+}
+
+export function updateRequest(collectionDisplayIdx: number, requestIdx: number, request: Request) {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+    const requestDisplay = getState().requestDisplay.value;
+
+    const store = await getOrCreateStore();
+    await store.upsertRequest(request);
+
+    dispatch({
+      type: collectionDisplaysSlice.actions.setRequest.type,
+      payload: {
+        collectionDisplayIdx,
+        requestIdx,
+        request,
+      }
+    });
+
+    if (
+      requestDisplay.indices?.collectionDisplayIdx ===
+      collectionDisplayIdx &&
+      requestDisplay.indices.requestIdx === requestIdx
+    ) {
+      const updatedRequestDisplay = structuredClone(requestDisplay);
+      updatedRequestDisplay.request = request;
+
+      dispatch({
+        type: requestDisplaySlice.actions.setRequestDisplay.type,
+        payload: {
+          requestDisplay: updatedRequestDisplay,
+        }
+      });
+    }
+  };
+}
+
+export function deleteRequest(collectionDisplayIdx: number, requestIdx: number) {
+  return async (dispatch: AppDispatch, getState: () => RootState) => {
+    const requestId = getState().collectionDisplays.value[collectionDisplayIdx].requests[requestIdx].id;
+    const requestDisplay = getState().requestDisplay.value;
+
+    const store = await getOrCreateStore();
+    await store.deleteRequest(requestId);
+
+    dispatch({
+      type: collectionDisplaysSlice.actions.removeRequest.type,
+      payload: {
+        collectionDisplayIdx,
+        requestIdx,
+      }
+    });
+
+    if (
+      requestDisplay.indices?.collectionDisplayIdx ===
+      collectionDisplayIdx &&
+      requestDisplay.indices?.requestIdx === requestIdx
+    ) {
+      dispatch({
+        type: requestDisplaySlice.actions.resetRequestDisplay.type,
+      });
+    }
+  }
 }
